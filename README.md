@@ -19,8 +19,8 @@ Private skills are stored in R2 (content) and D1 (metadata) and served unlisted 
 Upload one with the script, using the Worker's `SKILLS_TOKEN` secret:
 
 ```sh
-SKILLS_TOKEN=... node scripts/upload.mjs ~/.agents/skills/with-payload-api
-# or: npm run upload -- ~/.agents/skills/with-payload-api
+SKILLS_TOKEN=... node scripts/upload.mjs ~/.agents/skills/my-skill
+# or: npm run upload -- ~/.agents/skills/my-skill
 ```
 
 Install it from a machine that has the link:
@@ -48,7 +48,7 @@ Env (Worker secrets and vars):
 - `SKILLS_TOKEN` — bearer token for the upload script and private API.
 - Access keys: created in `/admin`, each with a scope of allowed slugs, an expiry, and revocation. They gate `/internal/<slug>` reads, `?key=sk_...` on the install URL, and every use is recorded in the audit log. The token is shown once and stored hashed.
 
-Google OAuth redirect URI: `https://skills.sam1.space/api/auth/callback/google` (and `http://localhost:8787/api/auth/callback/google` for local preview).
+Google OAuth redirect URI: `https://skills.sam1.space/api/auth/callback/google`. Local dev skips auth via `LOCAL_PREVIEW=1`, so no localhost callback is needed.
 
 ## Install public skills
 

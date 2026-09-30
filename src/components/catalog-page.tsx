@@ -41,11 +41,7 @@ export function CatalogPage({ skills, recommendations }: CatalogPageProps) {
       </header>
 
       <section className="py-12 sm:py-16">
-        <p className="text-[10px] uppercase tracking-[0.16em] text-muted">mhmdsami/skills</p>
-        <h1 className="mt-3 text-2xl font-medium tracking-tight sm:text-3xl">Skills for coding agents</h1>
-        <p className="mt-3 max-w-xl text-[12px] leading-6 text-muted">
-          Small, installable instruction sets. Search, filter by tag, and install with the Skills CLI.
-        </p>
+        <h1 className="text-2xl font-medium tracking-tight sm:text-3xl">Skills for coding agents</h1>
       </section>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
