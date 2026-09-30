@@ -11,3 +11,4 @@ pnpm-debug.log*
 .wrangler/
 .open-next/
 .secrets.local
+src/lib/public-skills.generated.ts

@@ -19,6 +19,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run generate:skills
       - run: npm run types
       - run: npm test
       - name: Apply D1 migrations
