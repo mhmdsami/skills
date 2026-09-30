@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS recommendations (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  source TEXT NOT NULL,
+  sort INTEGER NOT NULL DEFAULT 0,
+  updated_at INTEGER NOT NULL
+);
