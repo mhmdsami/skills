@@ -4,6 +4,7 @@ export type Skill = {
   description: string;
   tags: string[];
   internal: boolean;
+  credit?: { label: string; url?: string };
 };
 
 export type Recommendation = {

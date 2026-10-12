@@ -29,7 +29,10 @@ export function parseSkill(slug: string, content: string): Skill {
   const description = unquote(fields.match(/^description:\s*(.+)\s*$/m)?.[1] ?? "");
   const tags = parseTags(fields.match(/^tags:\s*(.+)\s*$/m)?.[1]);
   const internal = /^internal:\s*true\s*$/m.test(fields);
-  return { slug, name, description, tags, internal };
+  const creditLabel = unquote(fields.match(/^credit:\s*(.+)\s*$/m)?.[1] ?? "");
+  const creditUrl = unquote(fields.match(/^credit-url:\s*(.+)\s*$/m)?.[1] ?? "");
+  const credit = creditLabel ? { label: creditLabel, url: /^https?:\/\//.test(creditUrl) ? creditUrl : undefined } : undefined;
+  return { slug, name, description, tags, internal, credit };
 }
 
 export async function listSkills(): Promise<Skill[]> {

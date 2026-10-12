@@ -93,6 +93,18 @@ export function CatalogPage({ skills, recommendations }: CatalogPageProps) {
                 <a className="inline-flex items-center gap-1 text-[10px] text-muted hover:text-foreground" href={`${repoUrl}/blob/main/skills/${skill.slug}/SKILL.md`}>Source <ArrowUpRight className="size-3" /></a>
               </div>
               <p className="mt-1 text-[11px] leading-5 text-muted">{skill.description}</p>
+              {skill.credit && (
+                <p className="mt-1.5 text-[10px] text-muted">
+                  Based on{" "}
+                  {skill.credit.url ? (
+                    <a className="underline decoration-white/20 underline-offset-4 hover:text-foreground" href={skill.credit.url} target="_blank" rel="noreferrer">
+                      {skill.credit.label}
+                    </a>
+                  ) : (
+                    <span className="text-foreground">{skill.credit.label}</span>
+                  )}
+                </p>
+              )}
               {skill.tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {skill.tags.map((name) => (

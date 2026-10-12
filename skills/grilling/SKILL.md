@@ -2,6 +2,8 @@
 name: grilling
 description: Stress-test a plan, decision, or idea through an interview. Use when the user asks to be grilled or resolve design decisions.
 tags: planning, decisions
+credit: Matt Pocock's grilling
+credit-url: https://github.com/mattpocock/skills
 ---
 
 Map decisions and their dependencies. Ask one question per turn, wait for the answer, and use no emoji. Give a concise recommendation with its reason; offer choices when useful.

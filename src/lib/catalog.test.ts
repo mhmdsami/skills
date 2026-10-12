@@ -20,3 +20,10 @@ test("parseSkill flags internal skills", () => {
   assert.equal(parseSkill("secret", "---\nname: secret\ndescription: x\ninternal: true\n---\n").internal, true);
   assert.equal(parseSkill("public", "---\nname: public\ndescription: x\n---\n").internal, false);
 });
+
+test("parseSkill reads an optional credit", () => {
+  const withCredit = parseSkill("grilling", "---\nname: grilling\ndescription: x\ncredit: Matt Pocock's grilling\ncredit-url: https://github.com/mattpocock/skills\n---\n");
+  assert.deepEqual(withCredit.credit, { label: "Matt Pocock's grilling", url: "https://github.com/mattpocock/skills" });
+  assert.equal(parseSkill("plain", "---\nname: plain\ndescription: x\n---\n").credit, undefined);
+  assert.deepEqual(parseSkill("nolink", "---\nname: nolink\ndescription: x\ncredit: Someone\n---\n").credit, { label: "Someone", url: undefined });
+});
