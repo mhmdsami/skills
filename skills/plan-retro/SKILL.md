@@ -1,12 +1,12 @@
 ---
 name: plan-retro
 description: Review work and user corrections to propose concrete skill improvements. Apply edits only when authorized.
-tags: planning
+tags: planning, review
 ---
 
 # Review the workflow
 
-Read plan-spec from sibling or installed skills. Ask for it if missing.
+Read planning-protocol from sibling or installed skills for storage and record conventions. Ask for it if missing.
 
 1. Bound the review by workstream/period. Read plans, outcomes, execution evidence, and available exchanges. Separate user decisions from generated suggestions; state missing sources.
 2. Find recurring misunderstandings, rejected findings resurfacing, validation failures, approval loops, or transfer problems. Compare promised and delivered outcomes. One task-specific exception is not a permanent preference.
