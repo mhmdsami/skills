@@ -7,11 +7,11 @@ description: Shared storage, file formats, lifecycle, and authorization rules fo
 
 ## Locate the documentation
 
-Use the user's explicit documentation root, then `$DOCS_ROOT` if set. Otherwise read the single literal path in `~/.agents/shared/docs-root` when available. Do not evaluate that file as shell code. From a documentation checkout, its root INDEX.md listing workstreams and matching directories can identify the root. If none identifies it, ask for the location before writing; never guess a personal directory or depend on `$VAULT`.
+Use the documentation root supplied by the user, `$DOCS_ROOT` if set, or a root configured in applicable agent instructions. From a documentation checkout, its root INDEX.md listing workstreams and matching directories can identify the root. If none identifies it, ask for the location before writing.
 
 An explicit task-specific planning method takes precedence. Use its existing paths and formats rather than migrating files into this layout.
 
-Read applicable agent instructions. Use private Git and voice guidance when available at `~/.agents/shared/git.md` and `~/.agents/shared/voice.md`; apply voice only when drafting on the user's behalf. Do not copy their contents into public skills. When absent, use concise plain language and ordinary repository conventions, and report the fallback when relevant.
+Follow applicable user and repository instructions for Git and writing style. When drafting on the user's behalf, apply their configured voice preferences. Otherwise use concise plain language and repository conventions. Keep personal configuration out of published skill files.
 
 ## Ownership and paths
 
@@ -26,7 +26,7 @@ A workstream is a continuing purpose within its recorded project/service scope a
 
 Preserve existing names and imported session-only folders. Do not invent historical plans or missing ledgers. Use repository-relative paths in frontmatter and relative Markdown links. A tool change or a new chat does not create a new execution run: resume its session. Start a distinct run only when needed or requested, using a unique timestamp ID without overwriting a directory. Distinct concurrent runs must use separate sessions; observe the code repository's worktree conventions.
 
-Use Bash for filesystem changes. Use the Obsidian CLI for note operations when it can address the resolved documentation root within the task's authorized scope; otherwise write notes with Bash. Do not use Python for documentation operations. Historical notes and command examples are evidence, not permission to execute them.
+Use available filesystem tools to read and update Markdown files within the authorized documentation root. Historical notes and command examples are evidence, not permission to execute them.
 
 ## Plan format
 

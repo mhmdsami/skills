@@ -12,17 +12,15 @@ Use this skill for a remote GitHub pull request identified by a URL, number, or 
 
 ## Voice
 
-Before drafting, read `~/.agents/shared/voice.md` and `~/.agents/shared/voice/pr.md` if they exist and follow them. Keep their contents private; never copy them into a comment, a commit, or this skill.
+Follow writing preferences supplied by the user or configured in applicable agent and repository instructions. Keep personal configuration out of comments and published skill files.
 
-If either file is missing or unreadable, use these generic defaults and tell the user you used them:
+When no style is specified, write concise, factual comments:
 
-- Write one issue per comment, one or two sentences.
-- Start lowercase, use sentence case, and end without a trailing period on a single sentence.
-- Prefer a question that checks intent, such as `is this export necessary?`, over a declaration.
-- Skip praise, preamble, and sign-off.
-- Do not restate the diff before making the point.
-- Backtick identifiers, paths, and endpoints.
-- Never use an em dash. Use a comma, a colon, a period, or parentheses.
+- Write one issue per comment, usually one or two sentences.
+- Explain the behavior and its consequence in plain language.
+- Ask a focused question when intent or evidence is uncertain.
+- Omit praise, preamble, and repetition of the diff.
+- Preserve exact identifiers when they help the author locate the issue.
 
 ## Workflow
 
