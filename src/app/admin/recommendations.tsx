@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Recommendation } from "@/lib/types";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { deleteRecommendationAction, saveRecommendationAction } from "./actions";
 
 export function RecommendationsPanel({ recommendations }: { recommendations: Recommendation[] }) {
@@ -30,10 +31,12 @@ export function RecommendationsPanel({ recommendations }: { recommendations: Rec
             </div>
             <code className="hidden shrink-0 text-[11px] text-muted sm:block">{row.source}</code>
             <button onClick={() => setEditing(row)} className="shrink-0 text-[11px] text-muted hover:text-foreground">Edit</button>
-            <form action={deleteRecommendationAction}>
-              <input type="hidden" name="id" value={row.id} />
-              <button className="shrink-0 text-[11px] text-muted hover:text-red-300">Delete</button>
-            </form>
+            <ConfirmDelete
+              action={deleteRecommendationAction}
+              hidden={{ id: row.id }}
+              title={`Delete ${row.name}?`}
+              body="Removes it from the catalog's Recommended list."
+            />
           </li>
         )) : <li className="border-b border-border py-4 text-[11px] text-muted">No recommendations yet.</li>}
       </ul>

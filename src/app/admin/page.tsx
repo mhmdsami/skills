@@ -3,6 +3,7 @@ import { env } from "@/env";
 import { listPrivateSkills } from "@/lib/private-skills";
 import { listRecommendations } from "@/lib/recommendations";
 import { deletePrivateSkillAction } from "./actions";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { RecommendationsPanel } from "./recommendations";
 
 export const dynamic = "force-dynamic";
@@ -29,10 +30,12 @@ export default async function AdminPage() {
               </div>
               <code className="hidden shrink-0 text-[11px] text-muted sm:block">/internal/{skill.slug}</code>
               <Link href={`/admin/skills/${skill.slug}`} className="shrink-0 text-[11px] text-muted hover:text-foreground">Edit</Link>
-              <form action={deletePrivateSkillAction}>
-                <input type="hidden" name="slug" value={skill.slug} />
-                <button className="shrink-0 text-[11px] text-muted hover:text-red-300">Delete</button>
-              </form>
+              <ConfirmDelete
+                action={deletePrivateSkillAction}
+                hidden={{ slug: skill.slug }}
+                title={`Delete ${skill.slug}?`}
+                body="Removes the skill and all of its versions from storage. The unlisted URL stops working."
+              />
             </li>
           )) : <li className="border-b border-border py-4 text-[11px] text-muted">No private skills yet.</li>}
         </ul>
