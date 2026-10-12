@@ -27,6 +27,8 @@ Number plans within each workstream and sessions within each plan: 01-, 02-, and
 
 Keep dates in metadata and rely on Git history for versioning. Preserve legacy records without inventing missing plans or ledgers. Use relative links and root-relative metadata paths. Shared docs/, learnings/, audits/, artifacts/, and backlogs/ sit under the workstream, created as needed. Work with ordinary Markdown filesystem tools.
 
+Once the user accepts a plan, commit and push its documentation to the documentation repository's configured remote. This is standing authorization for later plan edits, status changes, ledgers, handoffs, and related records. Batch related edits at meaningful checkpoints; stage only the relevant documentation, preserve unrelated changes, and follow repository Git conventions. Do not initialize a repository or invent a remote. If syncing fails or no remote exists, retain local changes and report the gap.
+
 ## Modes
 
 **Capture:** Search existing plans by topic. Save a draft with the problem, supplied context/links, constraints, and unanswered questions. No interview, phases, approval, or session is needed. Adding context preserves active status/history; explicitly new work following a completed plan gets a linked draft.
@@ -57,4 +59,4 @@ Handoff frontmatter: phase, name, status (complete/partial/blocked), date, next-
 - done: checks and the stated completion are evidenced.
 - discarded/superseded: retain the reason and replacement link where applicable.
 
-Record actual authorization; status alone is insufficient. An implementation request authorizes settled scope without another approval ritual. Preserve authorization across agents; resolve material scope additions separately. Commits, pushes, messages, reviews, and publishing require explicit authorization. Never bypass required checks. Completed phases alone do not mean done.
+Record actual authorization; status alone is insufficient. An implementation request authorizes settled scope without another approval ritual. Preserve authorization across agents; resolve material scope additions separately. Plan acceptance authorizes documentation commits and pushes as described above. Implementation commits and pushes, messages, reviews, and other publishing require their own authorization. Never bypass required checks. Completed phases alone do not mean done.
