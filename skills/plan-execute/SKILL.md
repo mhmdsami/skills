@@ -1,6 +1,7 @@
 ---
 name: plan-execute
 description: Implement authorized multi-phase work, validate it, and maintain session records. Skip formal bookkeeping for trivial edits.
+tags: planning
 ---
 
 # Execute work

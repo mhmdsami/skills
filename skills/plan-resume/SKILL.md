@@ -1,6 +1,7 @@
 ---
 name: plan-resume
 description: Recover an existing plan and session across chats or agents, then continue its authorized next action.
+tags: planning
 ---
 
 # Resume work

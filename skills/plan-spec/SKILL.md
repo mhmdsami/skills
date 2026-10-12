@@ -1,6 +1,7 @@
 ---
 name: plan-spec
 description: Shared paths, formats, statuses, and authorization rules for the plan skills. Read before using a planning workflow.
+tags: planning, reference
 ---
 
 # Plan specification

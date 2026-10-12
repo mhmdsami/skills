@@ -1,6 +1,7 @@
 ---
 name: plan-write
 description: Investigate and resolve decisions, then write a bounded plan with acceptance checks. Use to prepare work, not implement it.
+tags: planning
 ---
 
 # Prepare work

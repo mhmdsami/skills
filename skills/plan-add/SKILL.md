@@ -1,6 +1,7 @@
 ---
 name: plan-add
 description: Save an idea, task, or investigation as a draft for later. No design interview or implementation.
+tags: planning
 ---
 
 # Capture work

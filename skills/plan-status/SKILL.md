@@ -1,6 +1,7 @@
 ---
 name: plan-status
 description: Report draft, ready, active, blocked, and awaiting-review plans. Read-only unless reconciliation is requested.
+tags: planning
 ---
 
 # Report status

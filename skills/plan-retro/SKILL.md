@@ -1,6 +1,7 @@
 ---
 name: plan-retro
 description: Review work and user corrections to propose concrete skill improvements. Apply edits only when authorized.
+tags: planning
 ---
 
 # Review the workflow
