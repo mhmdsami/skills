@@ -22,7 +22,7 @@ function CopyButton({ value }: { value: string }) {
           setCopied(false);
         }
       }}
-      className="inline-flex items-center gap-1 shrink-0 text-[11px] text-muted hover:text-foreground"
+      className="inline-flex min-w-16 shrink-0 items-center justify-center gap-1 text-[11px] text-muted hover:text-foreground"
     >
       {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
       {copied ? "Copied" : "Copy"}
@@ -94,7 +94,7 @@ function CreateKeyForm({ slugs, onDone }: { slugs: string[]; onDone: () => void 
 
       <div className="mt-5 flex justify-end gap-2">
         <button type="button" onClick={onDone} className="rounded-md border border-border px-3 py-2 text-[12px] text-muted hover:text-foreground">Cancel</button>
-        <button disabled={pending} className="rounded-md bg-accent px-3.5 py-2 text-[12px] font-medium text-[#171a14] hover:brightness-110 disabled:opacity-50">
+        <button disabled={pending} className="min-w-24 rounded-md bg-accent px-3.5 py-2 text-center text-[12px] font-medium text-[#171a14] hover:brightness-110 disabled:opacity-50">
           {pending ? "Creating..." : "Create key"}
         </button>
       </div>

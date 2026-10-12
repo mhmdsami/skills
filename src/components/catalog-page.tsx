@@ -45,14 +45,14 @@ export function CatalogPage({ skills, recommendations }: CatalogPageProps) {
       </section>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <label className="flex h-9 flex-1 items-center gap-2 rounded-md border border-border bg-panel px-3 text-muted focus-within:border-white/25">
-          <Search className="size-3.5 shrink-0" aria-hidden />
+        <label className="flex h-11 w-full items-center gap-2 rounded-md border border-border bg-panel px-3 text-muted focus-within:border-white/25 sm:h-9 sm:flex-1">
+          <Search className="size-4 shrink-0 sm:size-3.5" aria-hidden />
           <input
             aria-label="Search skills"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search skills..."
-            className="min-w-0 flex-1 bg-transparent text-[12px] text-foreground outline-none placeholder:text-muted"
+            className="min-w-0 flex-1 bg-transparent text-[13px] text-foreground outline-none placeholder:text-muted sm:text-[12px]"
           />
           {query && (
             <button type="button" aria-label="Clear search" onClick={() => setQuery("")} className="shrink-0 text-muted hover:text-foreground"><X className="size-3.5" /></button>
@@ -104,7 +104,7 @@ export function CatalogPage({ skills, recommendations }: CatalogPageProps) {
               )}
               <div className="mt-3 flex items-stretch gap-2">
                 <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-md border border-border bg-panel px-3 py-2.5 text-[11px]">{install}</code>
-                <button onClick={() => copy(skill.slug, install)} className="shrink-0 rounded-md border border-border px-3 text-[10px] text-muted hover:text-foreground">
+                <button onClick={() => copy(skill.slug, install)} className="min-w-16 shrink-0 rounded-md border border-border px-3 text-center text-[10px] text-muted hover:text-foreground">
                   {copied === skill.slug ? "Copied" : "Copy"}
                 </button>
               </div>
@@ -121,13 +121,24 @@ export function CatalogPage({ skills, recommendations }: CatalogPageProps) {
         <p className="mt-1 text-[11px] leading-5 text-muted">Skills from other authors that I install on most setups.</p>
 
         <ul className="mt-5 border-t border-border">
-          {recommendations.map((skill) => (
-            <li key={skill.id} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-border py-3">
-              <span className="text-[12px] text-foreground">{skill.name}</span>
-              <span className="min-w-0 flex-1 truncate text-[11px] text-muted">{skill.description}</span>
-              <a className="inline-flex items-center gap-1 text-[10px] text-muted hover:text-foreground" href={`https://github.com/${skill.source}`}>{skill.source} <ArrowUpRight className="size-3" /></a>
-            </li>
-          ))}
+          {recommendations.map((skill) => {
+            const install = `npx skills add ${skill.source} --skill ${skill.id}`;
+            return (
+              <li key={skill.id} className="border-b border-border py-4">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                  <span className="text-[12px] text-foreground">{skill.name}</span>
+                  <a className="inline-flex items-center gap-1 text-[10px] text-muted hover:text-foreground" href={`https://github.com/${skill.source}`}>{skill.source} <ArrowUpRight className="size-3" /></a>
+                </div>
+                <p className="mt-1 text-[11px] leading-5 text-muted">{skill.description}</p>
+                <div className="mt-2 flex items-stretch gap-2">
+                  <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-md border border-border bg-panel px-3 py-2.5 text-[11px]">{install}</code>
+                  <button onClick={() => copy(skill.id, install)} className="min-w-16 shrink-0 rounded-md border border-border px-3 text-center text-[10px] text-muted hover:text-foreground">
+                    {copied === skill.id ? "Copied" : "Copy"}
+                  </button>
+                </div>
+              </li>
+            );
+          })}
           {recommendations.length === 0 && <li className="border-b border-border py-4 text-[11px] text-muted">Nothing here yet.</li>}
         </ul>
       </section>
