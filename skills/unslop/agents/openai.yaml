@@ -1,0 +1,6 @@
+interface:
+  display_name: "Unslop"
+  short_description: "Clear prose for chat replies and plans"
+
+policy:
+  allow_implicit_invocation: true
