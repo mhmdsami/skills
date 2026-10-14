@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ArrowUpRight, Search, X } from "lucide-react";
 import { Logo } from "@/components/logo";
+import { CopyButton } from "@/components/copy-button";
 import type { CatalogPageProps } from "@/lib/types";
 
 const site = "https://skills.sam1.space";
@@ -11,7 +12,6 @@ const repoUrl = "https://github.com/mhmdsami/skills";
 export function CatalogPage({ skills, recommendations }: CatalogPageProps) {
   const [query, setQuery] = useState("");
   const [tag, setTag] = useState<string | null>(null);
-  const [copied, setCopied] = useState("");
 
   const tags = useMemo(() => [...new Set(skills.flatMap((skill) => skill.tags))].sort(), [skills]);
   const filtered = useMemo(() => {
@@ -22,16 +22,6 @@ export function CatalogPage({ skills, recommendations }: CatalogPageProps) {
       return `${skill.name} ${skill.description} ${skill.tags.join(" ")}`.toLowerCase().includes(search);
     });
   }, [skills, query, tag]);
-
-  async function copy(key: string, value: string) {
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(key);
-      window.setTimeout(() => setCopied(""), 1400);
-    } catch {
-      setCopied("unavailable");
-    }
-  }
 
   return (
     <main className="mx-auto min-h-dvh w-full max-w-3xl px-5 pb-16 sm:px-10">
@@ -115,10 +105,8 @@ export function CatalogPage({ skills, recommendations }: CatalogPageProps) {
                 </div>
               )}
               <div className="mt-3 flex items-stretch gap-2">
-                <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-md border border-border bg-panel px-3 py-2.5 text-[11px]">{install}</code>
-                <button onClick={() => copy(skill.slug, install)} className="min-w-16 shrink-0 rounded-md border border-border px-3 text-center text-[10px] text-muted hover:text-foreground">
-                  {copied === skill.slug ? "Copied" : "Copy"}
-                </button>
+                <code tabIndex={0} className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-md border border-border bg-panel px-3 py-2.5 text-[11px]">{install}</code>
+                <CopyButton value={install} className="button-secondary h-full min-w-20 text-[10px]" />
               </div>
             </article>
           );
@@ -143,10 +131,8 @@ export function CatalogPage({ skills, recommendations }: CatalogPageProps) {
                 </div>
                 <p className="mt-1 text-[11px] leading-5 text-muted">{skill.description}</p>
                 <div className="mt-2 flex items-stretch gap-2">
-                  <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-md border border-border bg-panel px-3 py-2.5 text-[11px]">{install}</code>
-                  <button onClick={() => copy(skill.id, install)} className="min-w-16 shrink-0 rounded-md border border-border px-3 text-center text-[10px] text-muted hover:text-foreground">
-                    {copied === skill.id ? "Copied" : "Copy"}
-                  </button>
+                  <code tabIndex={0} className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-md border border-border bg-panel px-3 py-2.5 text-[11px]">{install}</code>
+                  <CopyButton value={install} className="button-secondary h-full min-w-20 text-[10px]" />
                 </div>
               </li>
             );

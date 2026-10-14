@@ -3,77 +3,50 @@
 import { useState } from "react";
 import type { Recommendation } from "@/lib/types";
 import { ConfirmDelete } from "@/components/confirm-delete";
+import { Modal, ModalCancel } from "@/components/modal";
+import { MutationForm, SubmitButton } from "@/components/mutation-form";
 import { deleteRecommendationAction, saveRecommendationAction } from "./actions";
+
+function RecommendationForm({ item }: { item: Recommendation | null }) {
+  const [name, setName] = useState(item?.name ?? "");
+  const [source, setSource] = useState(item?.source ?? "");
+  const [description, setDescription] = useState(item?.description ?? "");
+  return <MutationForm action={saveRecommendationAction}>
+    {(_state, pending) => <>
+      {item && <input type="hidden" name="id" value={item.id} />}
+      <fieldset disabled={pending} className="mt-5 space-y-4 disabled:opacity-60">
+        <label className="field-label">Name<input data-modal-input name="name" required value={name} onChange={(event) => setName(event.target.value)} placeholder="ax" className="field-input" /></label>
+        <label className="field-label">Source<input name="source" required value={source} onChange={(event) => setSource(event.target.value)} placeholder="yusukebe/ax" className="field-input" /></label>
+        <label className="field-label">Description<input name="description" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What it does." className="field-input" /></label>
+      </fieldset>
+      <div className="mt-6 flex justify-end gap-2">
+        <ModalCancel pending={pending} />
+        <SubmitButton pending={pending} pendingLabel="Saving...">Save</SubmitButton>
+      </div>
+    </>}
+  </MutationForm>;
+}
 
 export function RecommendationsPanel({ recommendations }: { recommendations: Recommendation[] }) {
   const [editing, setEditing] = useState<Recommendation | "new" | null>(null);
-  const isNew = editing === "new";
+  const [open, setOpen] = useState(false);
+  function edit(item: Recommendation | "new") { setEditing(item); setOpen(true); }
   const item = editing && editing !== "new" ? editing : null;
-
-  return (
-    <section>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <div>
-          <h1 className="text-lg font-medium tracking-tight">Recommendations</h1>
-          <p className="mt-1 text-[11px] text-muted">Shown in the catalog&apos;s Recommended section.</p>
-        </div>
-        <button onClick={() => setEditing("new")} className="rounded-md border border-border px-3 py-1.5 text-[11px] text-muted hover:text-foreground">
-          New recommendation
-        </button>
-      </div>
-
-      <ul className="mt-5 border-t border-border">
-        {recommendations.length ? recommendations.map((row) => (
-          <li key={row.id} className="flex items-center gap-4 border-b border-border py-3">
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-[13px] text-foreground">{row.name}</div>
-              <div className="mt-0.5 truncate text-[11px] text-muted">{row.description || row.source}</div>
-            </div>
-            <code className="hidden shrink-0 text-[11px] text-muted sm:block">{row.source}</code>
-            <button onClick={() => setEditing(row)} className="shrink-0 text-[11px] text-muted hover:text-foreground">Edit</button>
-            <ConfirmDelete
-              action={deleteRecommendationAction}
-              hidden={{ id: row.id }}
-              title={`Delete ${row.name}?`}
-              body="Removes it from the catalog's Recommended list."
-            />
-          </li>
-        )) : <li className="border-b border-border py-4 text-[11px] text-muted">No recommendations yet.</li>}
-      </ul>
-
-      {editing && (
-        <div
-          className="fixed inset-0 z-20 flex items-center justify-center bg-black/65 p-4"
-          onMouseDown={(event) => { if (event.target === event.currentTarget) setEditing(null); }}
-        >
-          <form action={saveRecommendationAction} className="w-full max-w-md rounded-md border border-border bg-panel p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-medium">{isNew ? "New recommendation" : "Edit recommendation"}</h2>
-              <button type="button" onClick={() => setEditing(null)} aria-label="Close" className="text-[15px] text-muted hover:text-foreground">×</button>
-            </div>
-
-            {!isNew && <input type="hidden" name="id" value={item?.id} />}
-
-            <label className="mt-5 block text-[11px] uppercase tracking-[0.13em] text-muted">
-              Name
-              <input name="name" defaultValue={item?.name ?? ""} autoFocus placeholder="ax" className="mt-2 h-10 w-full rounded-md border border-border bg-background px-3 text-[13px] text-foreground outline-none placeholder:text-muted focus:border-white/25" />
-            </label>
-            <label className="mt-4 block text-[11px] uppercase tracking-[0.13em] text-muted">
-              Source
-              <input name="source" defaultValue={item?.source ?? ""} placeholder="yusukebe/ax" className="mt-2 h-10 w-full rounded-md border border-border bg-background px-3 text-[13px] text-foreground outline-none placeholder:text-muted focus:border-white/25" />
-            </label>
-            <label className="mt-4 block text-[11px] uppercase tracking-[0.13em] text-muted">
-              Description
-              <input name="description" defaultValue={item?.description ?? ""} placeholder="What it does." className="mt-2 h-10 w-full rounded-md border border-border bg-background px-3 text-[13px] text-foreground outline-none placeholder:text-muted focus:border-white/25" />
-            </label>
-
-            <div className="mt-6 flex justify-end gap-2">
-              <button type="button" onClick={() => setEditing(null)} className="rounded-md border border-border px-3 py-2 text-[12px] text-muted hover:text-foreground">Cancel</button>
-              <button className="rounded-md bg-accent px-3.5 py-2 text-[12px] font-medium text-[#171a14] hover:brightness-110">Save</button>
-            </div>
-          </form>
-        </div>
-      )}
-    </section>
-  );
+  return <section>
+    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+      <div><h2 className="text-lg font-medium tracking-tight">Recommendations</h2><p className="mt-1 text-[12px] text-muted">Shown in the catalog&apos;s Recommended section.</p></div>
+      <button type="button" onClick={() => edit("new")} className="button-secondary">New recommendation</button>
+    </div>
+    <ul className="mt-5 border-t border-border">
+      {recommendations.length ? recommendations.map((row) => <li key={row.id} className="dashboard-row flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border py-3">
+        <div className="min-w-0 flex-1"><div className="truncate text-[13px] text-foreground">{row.name}</div><div className="mt-0.5 truncate text-[12px] text-muted">{row.description || row.source}</div></div>
+        <code className="hidden shrink-0 text-[11px] text-muted sm:block">{row.source}</code>
+        <button type="button" onClick={() => edit(row)} className="row-action">Edit</button>
+        <ConfirmDelete action={deleteRecommendationAction} hidden={{ id: row.id }} title={`Delete ${row.name}?`} body="Removes it from the catalog's Recommended list." />
+      </li>) : <li className="empty-state">No recommendations yet. Add one to share a skill you use.</li>}
+    </ul>
+    <Modal open={open} onOpenChange={setOpen} onClosed={() => setEditing(null)} title={editing === "new" ? "New recommendation" : "Edit recommendation"}>
+      <RecommendationForm key={item?.id ?? "new"} item={item} />
+    </Modal>
+  </section>;
 }

@@ -1,18 +1,29 @@
 "use client";
 
 import { authClient } from "@/lib/auth-client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function GoogleSignIn({ next }: { next?: string }) {
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(false);
+  const mounted = useRef(false);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
   async function signIn() {
+    if (busy) return;
     setBusy(true);
-    await authClient.signIn.social({ provider: "google", callbackURL: next || "/admin" });
+    setError(false);
+    try {
+      const result = await authClient.signIn.social({ provider: "google", callbackURL: next || "/admin" });
+      if (result.error) throw new Error("Sign in failed");
+    } catch {
+      if (mounted.current) { setBusy(false); setError(true); }
+    }
   }
 
   return (
-    <button
+    <><button
+      type="button"
       onClick={signIn}
       disabled={busy}
       className="flex h-10 w-full items-center justify-center gap-2 rounded-md border border-border text-[12px] text-foreground transition hover:border-white/25 disabled:opacity-50"
@@ -31,5 +42,6 @@ export function GoogleSignIn({ next }: { next?: string }) {
         </>
       )}
     </button>
+    {error && <p role="alert" className="mt-3 text-[12px] text-red-300">Could not start sign-in. Try again.</p>}</>
   );
 }

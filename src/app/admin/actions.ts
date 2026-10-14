@@ -1,127 +1,115 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { requireViewer } from "@/lib/session";
+import { requireViewer, type Viewer } from "@/lib/session";
 import { deletePrivateSkill, getVersionContent, parseFrontmatter, putPrivateSkill } from "@/lib/private-skills";
 import { deleteRecommendation, putRecommendation } from "@/lib/recommendations";
 import { createKey, revokeKey } from "@/lib/access-keys";
 import { writeAudit } from "@/lib/audit";
 import { validSlug } from "@/lib/token";
+import { parseKeyExpiry } from "@/lib/key-expiry";
+import type { FormState } from "@/lib/form-state";
 import { env } from "@/env";
 
 function slugify(value: string): string {
   return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
-function revalidate() {
-  revalidatePath("/");
-  revalidatePath("/admin");
+async function mutate(operation: (viewer: Viewer) => Promise<FormState>): Promise<FormState> {
+  try {
+    const result = await operation(await requireViewer());
+    if (result.success) {
+      revalidatePath("/");
+      revalidatePath("/admin", "layout");
+    }
+    return result;
+  } catch {
+    return { error: "Could not complete the request. Refresh to check the result and your session before trying again." };
+  }
 }
 
-const maxContentLength = 200_000;
-
-export async function savePrivateSkillAction(formData: FormData) {
-  const viewer = await requireViewer();
-  const content = String(formData.get("content") ?? "");
-  const existing = String(formData.get("slug") ?? "").trim();
-  const slug = existing || slugify(parseFrontmatter("", content).name);
-
-  if (!validSlug(slug)) redirect("/admin/skills/new?error=name");
-  if (!content.trim()) redirect(`/admin/skills/${slug}?error=empty`);
-  if (content.length > maxContentLength) redirect(`/admin/skills/${slug}?error=size`);
-
-  await putPrivateSkill(env(), slug, content, viewer.email);
-  await writeAudit(viewer.email, "skill.save", slug);
-  revalidate();
-  redirect(`/admin/skills/${slug}?ok=saved`);
+export async function savePrivateSkillAction(formData: FormData): Promise<FormState> {
+  return mutate(async (viewer) => {
+    const content = String(formData.get("content") ?? "");
+    const existing = String(formData.get("slug") ?? "").trim();
+    const slug = existing || slugify(parseFrontmatter("", content).name);
+    if (!validSlug(slug)) return { error: "Add a valid name to the skill's frontmatter." };
+    if (!content.trim()) return { error: "Skill content cannot be empty." };
+    if (content.length > 200_000) return { error: "Skill content must be at most 200,000 characters." };
+    await putPrivateSkill(env(), slug, content, viewer.email);
+    await writeAudit(viewer.email, "skill.save", slug);
+    return { success: true, message: "Skill saved.", ...(!existing ? { redirectTo: `/admin/skills/${slug}` } : {}) };
+  });
 }
 
-export async function restorePrivateSkillAction(formData: FormData) {
-  const viewer = await requireViewer();
-  const slug = String(formData.get("slug") ?? "");
-  const id = String(formData.get("id") ?? "");
-  if (!validSlug(slug) || !id) redirect("/admin");
-
-  const content = await getVersionContent(env(), slug, id);
-  if (!content) redirect(`/admin/skills/${slug}?error=missing`);
-
-  await putPrivateSkill(env(), slug, content, viewer.email);
-  await writeAudit(viewer.email, "skill.restore", slug);
-  revalidate();
-  redirect(`/admin/skills/${slug}?ok=restored`);
+export async function restorePrivateSkillAction(formData: FormData): Promise<FormState> {
+  return mutate(async (viewer) => {
+    const slug = String(formData.get("slug") ?? "");
+    const id = String(formData.get("id") ?? "");
+    if (!validSlug(slug) || !id) return { error: "This version is invalid." };
+    const content = await getVersionContent(env(), slug, id);
+    if (content === null) return { error: "This version is no longer available." };
+    await putPrivateSkill(env(), slug, content, viewer.email);
+    await writeAudit(viewer.email, "skill.restore", slug);
+    return { success: true, message: "Version restored." };
+  });
 }
 
-export async function deletePrivateSkillAction(formData: FormData) {
-  const viewer = await requireViewer();
-  const slug = String(formData.get("slug") ?? "");
-  if (validSlug(slug)) {
+export async function deletePrivateSkillAction(formData: FormData): Promise<FormState> {
+  return mutate(async (viewer) => {
+    const slug = String(formData.get("slug") ?? "");
+    if (!validSlug(slug)) return { error: "This skill is invalid." };
     await deletePrivateSkill(env(), slug);
     await writeAudit(viewer.email, "skill.delete", slug);
-  }
-  revalidate();
-  redirect("/admin?ok=deleted");
+    return { success: true, message: "Skill deleted." };
+  });
 }
 
-export type KeyFormState = { token?: string; error?: string };
-
-export async function createKeyAction(_prev: KeyFormState, formData: FormData): Promise<KeyFormState> {
-  const viewer = await requireViewer();
-  const name = String(formData.get("name") ?? "").trim();
-
-  const selections = formData.getAll("slugs").map((part) => String(part).trim());
-  const allSkills = selections.includes("*") || selections.length === 0;
-  const slugs = allSkills ? [] : selections.filter(Boolean);
-  if (!allSkills && selections.some((slug) => slug && !validSlug(slug))) return { error: "Scopes must be lowercase and hyphenated." };
-  if (!name) return { error: "Name is required." };
-
-  const expiresOn = String(formData.get("expiresOn") ?? "").trim();
-  let expiresAt: number | null = null;
-  if (expiresOn) {
-    const parsed = new Date(`${expiresOn}T23:59:59Z`).getTime();
-    if (Number.isNaN(parsed) || parsed < Date.now()) return { error: "Expiry must be a future date." };
-    expiresAt = parsed;
-  }
-
-  const token = await createKey(name, slugs, expiresAt);
-  await writeAudit(viewer.email, "key.create", name);
-  revalidate();
-  return { token };
+export async function createKeyAction(formData: FormData): Promise<FormState> {
+  return mutate(async (viewer) => {
+    const name = String(formData.get("name") ?? "").trim();
+    const selections = formData.getAll("slugs").map((part) => String(part).trim());
+    const allSkills = selections.includes("*") || selections.length === 0;
+    const slugs = allSkills ? [] : [...new Set(selections.filter(Boolean))];
+    if (!allSkills && selections.some((slug) => slug && !validSlug(slug))) return { error: "Scopes must be lowercase and hyphenated." };
+    if (!name) return { error: "Name is required." };
+    const expiry = parseKeyExpiry(String(formData.get("ttl") ?? "30"), String(formData.get("expiresOn") ?? ""));
+    if (expiry.error) return { error: expiry.error };
+    const token = await createKey(name, slugs, expiry.expiresAt);
+    await writeAudit(viewer.email, "key.create", name);
+    return { success: true, token, message: "Access key created. Copy it before closing." };
+  });
 }
 
-export async function revokeKeyAction(formData: FormData) {
-  const viewer = await requireViewer();
-  const id = String(formData.get("id") ?? "");
-  if (id) {
+export async function revokeKeyAction(formData: FormData): Promise<FormState> {
+  return mutate(async (viewer) => {
+    const id = String(formData.get("id") ?? "").trim();
+    if (!id) return { error: "This key is invalid." };
     await revokeKey(id);
     await writeAudit(viewer.email, "key.revoke", id.slice(0, 8));
-  }
-  revalidate();
-  redirect("/admin/keys");
+    return { success: true, message: "Access key revoked." };
+  });
 }
 
-export async function saveRecommendationAction(formData: FormData) {
-  const viewer = await requireViewer();
-  const name = String(formData.get("name") ?? "").trim();
-  const source = String(formData.get("source") ?? "").trim();
-  const description = String(formData.get("description") ?? "").trim();
-  const id = String(formData.get("id") ?? "").trim() || slugify(name);
-
-  if (!id || !name || !source) redirect("/admin?error=recommendation");
-
-  await putRecommendation({ id, name, description, source });
-  await writeAudit(viewer.email, "rec.save", id);
-  revalidate();
-  redirect("/admin?ok=recommendation");
+export async function saveRecommendationAction(formData: FormData): Promise<FormState> {
+  return mutate(async (viewer) => {
+    const name = String(formData.get("name") ?? "").trim();
+    const source = String(formData.get("source") ?? "").trim();
+    const description = String(formData.get("description") ?? "").trim();
+    const id = String(formData.get("id") ?? "").trim() || slugify(name);
+    if (!id || !name || !source) return { error: "Name and source are required." };
+    await putRecommendation({ id, name, description, source });
+    await writeAudit(viewer.email, "rec.save", id);
+    return { success: true, message: "Recommendation saved." };
+  });
 }
 
-export async function deleteRecommendationAction(formData: FormData) {
-  const viewer = await requireViewer();
-  const id = String(formData.get("id") ?? "");
-  if (id) {
+export async function deleteRecommendationAction(formData: FormData): Promise<FormState> {
+  return mutate(async (viewer) => {
+    const id = String(formData.get("id") ?? "").trim();
+    if (!id) return { error: "This recommendation is invalid." };
     await deleteRecommendation(id);
     await writeAudit(viewer.email, "rec.delete", id);
-  }
-  revalidate();
-  redirect("/admin?ok=deleted");
+    return { success: true, message: "Recommendation deleted." };
+  });
 }
