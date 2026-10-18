@@ -6,7 +6,7 @@ tags: development, tooling
 
 # devctl
 
-`devctl` runs local development services. The service graph comes from `DEVCTL_CONFIG`, or `devctl.config.jsonc` / `devctl.config.json` in the devctl installation. Each git worktree gets its own port. A worktree name shared across services is a **stack**. Services run inside herdr tabs. Never kill tabs or ports yourself; devctl refuses to kill processes it doesn't own.
+`devctl` runs local development services. The service graph comes from `DEVCTL_CONFIG`, or `devctl.config.jsonc` / `devctl.config.json` in the devctl installation. Each git worktree gets its own named URL (portless-owned) or port (fixed-port). A worktree name shared across services is a **stack**. Services run inside herdr tabs. Never kill tabs or ports yourself; devctl refuses to kill processes it doesn't own. portless is required.
 
 ## Read state first, act second
 
@@ -47,7 +47,28 @@ devctl logs web/ft-my-feature --lines 100    # last 100 lines, default 50
 devctl logs web/ft-my-feature --follow       # tails, blocking; agents should use --lines
 ```
 
-URLs come from `status --json`. `portlessUrl` looks like `https://<branch>.<service>.localhost:1355`; the fallback is `http://localhost:<port>`. Don't construct them by hand. Don't curl services to check health. `devctl status --check` does that.
+URLs come from `status --json` (`url`, and `portlessUrl`). They look like `https://<branch>.<service>.localhost` (portless-owned, `port` is null); fixed-port services also carry a numeric `port`. Don't construct them by hand. Don't curl services to check health. `devctl status --check` does that.
+
+## Agent sessions
+
+```sh
+devctl agents [stack] --refresh   # claude/codex/opencode/pi sessions, with the stack each is linked to
+devctl agent register <stack>     # link YOUR session to the stack you are working on
+devctl agent note <agent> <id> "text"
+devctl agent resume <stack> [--agent X] [--id Y]
+```
+
+When you start working on a stack, register your own session so it can be found later:
+
+```sh
+devctl agent register ft-my-feature
+```
+
+It detects the agent and session id from the environment (opencode and claude expose one) or
+falls back to the newest session for that agent, then links it to the stack. `devctl up <stack>`
+also registers the current session automatically. Link sessions you did not start with
+`devctl agent assign <stack> <agent> <id>`. A link is never guessed from the cwd, because agents
+often run from the repo root. `devctl context <stack>` then includes the linked sessions.
 
 ## Env and targeting
 
@@ -74,4 +95,4 @@ the debug agent. The agent model is set with `devctl config set debug.model <nam
 
 ## Adding a service (config)
 
-Services live in the resolved devctl configuration. A service declares `repo`, `basePort`, `command` (supports `${port}`), and optionally `provides`, `remoteProvides`, `wiring`, `dependsOn`, `shared`. See `devctl config show` or the repo README for the schema. Config errors fail at load, so run any devctl command after editing to catch mistakes.
+Services live in the resolved devctl configuration. A service declares `repo`, `basePort`, `command` (supports `${port}`), and optionally `provides`, `remoteProvides`, `wiring`, `dependsOn`, `shared`. See `devctl config show` or `docs/configuration.md` in the devctl repo for the schema. Config errors fail at load, so run any devctl command after editing to catch mistakes.
