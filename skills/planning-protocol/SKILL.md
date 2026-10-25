@@ -1,6 +1,6 @@
 ---
 name: planning-protocol
-description: Capture, investigate, plan, execute, resume, and report multi-phase work using Markdown records. Skip formal bookkeeping for trivial edits.
+description: Capture, investigate, plan, execute, resume, and report multi-phase work using Markdown records, including backlog entries and audits. Skip this for trivial code edits outside the documentation workflow.
 tags: planning, workflow
 ---
 
@@ -10,7 +10,7 @@ Use the mode matching the request. Capturing or investigating work does not requ
 
 ## Storage
 
-Resolve the root from the user's instructions, `$DOCS_ROOT`, agent configuration, or the current documentation checkout's INDEX.md. Ask if unresolved. Explicit task-specific paths/formats take precedence.
+Resolve the root from `$WORKLOG` before searching the filesystem or GitHub, then `$DOCS_ROOT`, the user's instructions, agent configuration, or the current documentation checkout's INDEX.md. Ask if unresolved. Explicit task-specific paths/formats take precedence.
 
 INDEX.md lists workstreams, projects/services, and short scopes. Match purpose and service; reuse existing ownership, ask if ambiguous. New workstreams get a kebab-case name and one index row. Keep plans out of the index; create no workstream indexes or agent instruction files.
 
