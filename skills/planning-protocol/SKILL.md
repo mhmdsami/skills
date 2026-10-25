@@ -10,7 +10,7 @@ Use the mode matching the request. Capturing or investigating work does not requ
 
 ## Storage
 
-Resolve the root from `$WORKLOG` before searching the filesystem or GitHub, then the user's instructions, agent configuration, or the current documentation checkout's INDEX.md. Ask if unresolved. Explicit task-specific paths/formats take precedence.
+Resolve the root from `$WORKLOG`, or from the location recorded in the project's agent instructions (`AGENTS.md`) or documentation index (`INDEX.md`), or ask the user. Do not infer it from other Markdown files. Check this before searching the filesystem or GitHub. Explicit task-specific paths/formats take precedence.
 
 INDEX.md lists workstreams, projects/services, and short scopes. Match purpose and service; reuse existing ownership, ask if ambiguous. New workstreams get a kebab-case name and one index row. Keep plans out of the index; create no workstream indexes or agent instruction files.
 
