@@ -36,7 +36,7 @@ export function SkillEditor({ slug, initialContent, versions }: { slug: string; 
     <MutationForm action={savePrivateSkillAction} onSuccess={() => setSavedContent(content)} className="space-y-4">
       {(_state, pending) => <>
         {!isNew && <input type="hidden" name="slug" value={slug} />}
-        <textarea name="content" aria-label="SKILL.md" required value={content} onChange={(event) => setContent(event.target.value)} disabled={pending} spellCheck={false} placeholder={"---\nname: My skill\ndescription: What it does.\ninternal: true\n---\n\n# My skill\n"} className="min-h-[460px] w-full resize-y rounded-lg border border-border bg-[#0e0f0d] p-4 text-[13px] leading-[1.75] text-[#d7d8d2] outline-none transition-colors focus:border-accent/50 disabled:opacity-60" />
+        <textarea name="content" aria-label="SKILL.md" required value={content} onChange={(event) => setContent(event.target.value)} disabled={pending} spellCheck={false} placeholder={"---\nname: My skill\ndescription: What it does.\ninternal: true\n---\n\n# My skill\n"} className="min-h-[460px] w-full resize-y rounded-lg border border-border bg-[#0e0f0d] p-4 text-[13px] leading-[1.75] text-[#d7d8d2] outline-none transition-colors disabled:opacity-60" />
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p role="status" className="text-[11px] text-muted">{pending ? "Saving your changes..." : dirty ? "Unsaved changes" : isNew ? "The frontmatter name determines the URL." : "All changes saved"}</p>
           <SubmitButton pending={pending} pendingLabel="Saving..." disabled={!dirty || !content.trim()}>Save</SubmitButton>
@@ -45,7 +45,7 @@ export function SkillEditor({ slug, initialContent, versions }: { slug: string; 
     </MutationForm>
     {!isNew && versions.length > 0 && <section>
       <h2 className="text-sm font-medium">History</h2><p className="mt-1 text-[12px] text-muted">Every save is kept. Restoring one writes a new version.</p>
-      <ul className="mt-4 border-t border-border">{versions.map((version) => <li key={version.id} className="dashboard-row flex flex-wrap items-center gap-4 border-b border-border py-3">
+      <ul className="mt-4 border-t border-border">{versions.map((version) => <li key={version.id} className="dashboard-row flex flex-wrap items-center gap-4 border-b px-3 border-border py-3">
         <time className="flex-1 text-[12px]" dateTime={new Date(version.createdAt).toISOString()}>{new Date(version.createdAt).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</time>
         <span className="hidden text-[11px] text-muted sm:block">{version.author || "api"}</span>
         <ConfirmDelete action={restorePrivateSkillAction} hidden={{ slug, id: version.id }} title="Restore this version?" body={dirty ? "Restoring replaces the current skill and discards your unsaved edits. The saved history is kept." : "Restoring replaces the current skill and keeps the saved history."} trigger="Restore" pendingLabel="Restoring..." />

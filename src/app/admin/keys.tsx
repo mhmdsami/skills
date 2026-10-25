@@ -30,7 +30,7 @@ function CreateKeyForm({ slugs }: { slugs: string[] }) {
       <p className="mt-3 text-[11px] leading-5 text-muted">You cannot view this key again after closing.</p>
       <div className="mt-5 flex justify-end"><ModalCancel pending={false}>Done</ModalCancel></div>
     </> : <>
-      <fieldset disabled={pending} className="mt-5 space-y-4 disabled:opacity-60">
+      <fieldset disabled={pending} className="mt-4 space-y-3 disabled:opacity-60">
         <label className="field-label">Name<input data-modal-input name="name" required value={name} onChange={(event) => setName(event.target.value)} placeholder="sami-laptop" className="field-input" /></label>
         <div><span className="field-label">Scopes</span><MultiSelect name="slugs" options={slugs.map((slug) => ({ value: slug, label: slug }))} disabled={pending} /></div>
         <label className="field-label">Expiry
@@ -43,7 +43,7 @@ function CreateKeyForm({ slugs }: { slugs: string[] }) {
         </label>
         {expiry === "expires" && <label className="field-label notice-enter">Expires on (end of day, UTC)<input name="expiresOn" type="date" required value={date} onChange={(event) => setDate(event.target.value)} className="field-input" /></label>}
       </fieldset>
-      <div className="mt-6 flex justify-end gap-2"><ModalCancel pending={pending} /><SubmitButton pending={pending} pendingLabel="Creating...">Create key</SubmitButton></div>
+      <div className="mt-5 flex justify-end gap-2"><ModalCancel pending={pending} /><SubmitButton pending={pending} pendingLabel="Creating...">Create key</SubmitButton></div>
     </>}
   </MutationForm>;
 }
@@ -55,7 +55,7 @@ export function KeysPanel({ keys, slugs }: { keys: AccessKeyView[]; slugs: strin
       <Modal title="New access key" trigger={<button type="button" className="button-secondary">New key</button>}><CreateKeyForm slugs={slugs} /></Modal>
     </div>
     <ul className="border-t border-border">
-      {keys.length ? keys.map((row) => <li key={row.id} className="dashboard-row flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border py-3">
+      {keys.length ? keys.map((row) => <li key={row.id} className="dashboard-row flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-3 border-border py-3">
         <div className="min-w-0 flex-1"><div className="truncate text-[13px] text-foreground">{row.name}</div><div className="mt-1 text-[11px] leading-5 text-muted">
           {row.slugs.length ? row.slugs.join(", ") : "All skills"}
           {row.expiresAt ? ` · expires ${new Date(row.expiresAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}` : " · no expiry"}
@@ -63,7 +63,14 @@ export function KeysPanel({ keys, slugs }: { keys: AccessKeyView[]; slugs: strin
         </div></div>
         <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] ${row.status === "active" ? "border-accent/40 bg-accent/10 text-accent" : row.status === "revoked" ? "border-red-400/40 bg-red-400/10 text-red-300" : "border-border text-muted"}`}>{row.status}</span>
         {row.status === "active" && <ConfirmDelete action={revokeKeyAction} hidden={{ id: row.id }} title={`Revoke ${row.name}?`} body="This key will immediately stop granting access to private skills." trigger="Revoke" pendingLabel="Revoking..." />}
-      </li>) : <li className="empty-state">No keys yet. Create one to download private skills.</li>}
+      </li>) : (
+        <li className="border-b border-border">
+          <div className="flex flex-col items-center py-12 text-center">
+            <p className="text-[13px] text-foreground">No keys yet.</p>
+            <p className="mt-1 text-[11px] leading-5 text-muted">Create a key to download private skills.</p>
+          </div>
+        </li>
+      )}
     </ul>
   </section>;
 }

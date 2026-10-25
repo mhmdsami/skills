@@ -18,7 +18,7 @@ export function MultiSelect({ name, options, disabled = false }: {
   return <div className="mt-2">
     {current.length ? current.map((value) => <input key={value} type="hidden" name={name} value={value} />) : <input type="hidden" name={name} value="*" />}
     <Popover.Root open={open && !disabled} onOpenChange={setOpen}>
-      <div className="flex min-h-10 flex-wrap items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5 focus-within:border-accent/50">
+      <div className="flex min-h-9 flex-wrap items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5 focus-within:border-accent/50">
         {current.length > 0 && <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">{current.map((value) => <span key={value} className="notice-enter inline-flex items-center gap-1 rounded-full border border-border bg-panel py-0.5 pl-2.5 pr-1 text-[11px] normal-case tracking-normal text-foreground">
           {options.find((option) => option.value === value)?.label ?? value}
           <button type="button" disabled={disabled} aria-label={`Remove ${value}`} onClick={() => toggle(value)} className="rounded-full p-1 text-muted hover:text-foreground"><X className="size-3" /></button>

@@ -23,12 +23,11 @@ export default async function AdminPage() {
         </div>
         <ul className="mt-5 border-t border-border">
           {skills.length ? skills.map((skill) => (
-            <li key={skill.slug} className="dashboard-row flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border py-3">
+            <li key={skill.slug} className="dashboard-row flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-3 border-border py-3">
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[13px] text-foreground">{skill.name}</div>
                 <div className="mt-0.5 truncate text-[11px] text-muted">{skill.description || "No description"}</div>
               </div>
-              <code className="hidden shrink-0 text-[11px] text-muted sm:block">/internal/{skill.slug}</code>
               <Link href={`/admin/skills/${skill.slug}`} className="row-action">Edit</Link>
               <ConfirmDelete
                 action={deletePrivateSkillAction}
@@ -37,7 +36,15 @@ export default async function AdminPage() {
                 body="Removes the skill and all of its versions from storage. The unlisted URL stops working."
               />
             </li>
-          )) : <li className="empty-state">No private skills yet. Create one to share through an unlisted link.</li>}
+          )) : (
+            <li className="border-b border-border">
+              <div className="flex flex-col items-center py-12 text-center">
+                <p className="text-[13px] text-foreground">No private skills yet.</p>
+                <p className="mt-1 text-[11px] leading-5 text-muted">Create one to share it through an unlisted link.</p>
+                <Link href="/admin/skills/new" className="button-secondary mt-4 text-[11px]">New skill</Link>
+              </div>
+            </li>
+          )}
         </ul>
       </section>
 

@@ -30,11 +30,7 @@ export function CatalogPage({ skills, recommendations }: CatalogPageProps) {
         <a href={repoUrl} className="inline-flex items-center gap-1 text-[11px] text-muted hover:text-foreground">GitHub <ArrowUpRight className="size-3" /></a>
       </header>
 
-      <section className="py-12 sm:py-16">
-        <h1 className="text-2xl font-medium tracking-tight sm:text-3xl">Skills for coding agents</h1>
-      </section>
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
         <label className="flex h-11 w-full items-center gap-2 rounded-md border border-border bg-panel px-3 text-muted focus-within:border-white/25 sm:h-9 sm:flex-1">
           <Search className="size-4 shrink-0 sm:size-3.5" aria-hidden />
           <input
@@ -48,7 +44,7 @@ export function CatalogPage({ skills, recommendations }: CatalogPageProps) {
             <button type="button" aria-label="Clear search" onClick={() => setQuery("")} className="shrink-0 text-muted hover:text-foreground"><X className="size-3.5" /></button>
           )}
         </label>
-        <span className="shrink-0 text-[10px] uppercase tracking-[0.14em] text-muted">{filtered.length} of {skills.length}</span>
+        <span className="min-w-14 shrink-0 text-right text-[10px] uppercase tracking-[0.14em] text-muted">{filtered.length} of {skills.length}</span>
       </div>
 
       {tags.length > 0 && (
@@ -56,7 +52,7 @@ export function CatalogPage({ skills, recommendations }: CatalogPageProps) {
           <button
             onClick={() => setTag(null)}
             aria-pressed={tag === null}
-            className={`rounded-full border px-2.5 py-1 text-[10px] transition ${tag === null ? "border-white/25 text-foreground" : "border-border text-muted hover:text-foreground"}`}
+            className={`rounded-md border px-2.5 py-1 text-[10px] transition ${tag === null ? "border-white/25 text-foreground" : "border-border text-muted hover:text-foreground"}`}
           >
             All
           </button>
@@ -65,7 +61,7 @@ export function CatalogPage({ skills, recommendations }: CatalogPageProps) {
               key={name}
               onClick={() => setTag(tag === name ? null : name)}
               aria-pressed={tag === name}
-              className={`rounded-full border px-2.5 py-1 text-[10px] transition ${tag === name ? "border-white/25 text-foreground" : "border-border text-muted hover:text-foreground"}`}
+              className={`rounded-md border px-2.5 py-1 text-[10px] transition ${tag === name ? "border-white/25 text-foreground" : "border-border text-muted hover:text-foreground"}`}
             >
               {name}
             </button>
@@ -98,7 +94,7 @@ export function CatalogPage({ skills, recommendations }: CatalogPageProps) {
               {skill.tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {skill.tags.map((name) => (
-                    <button key={name} onClick={() => setTag(name)} className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted hover:border-white/25 hover:text-foreground">
+                    <button key={name} onClick={() => setTag(name)} className="rounded-md border border-border px-2 py-0.5 text-[10px] text-muted hover:border-white/25 hover:text-foreground">
                       {name}
                     </button>
                   ))}
@@ -110,7 +106,17 @@ export function CatalogPage({ skills, recommendations }: CatalogPageProps) {
               </div>
             </article>
           );
-        }) : <p className="py-10 text-[11px] text-muted">{skills.length ? "No skills match your search." : "No skills published yet."}</p>}
+        }) : (
+          <div className="flex flex-col items-center py-12 text-center">
+            <p className="text-[13px] text-foreground">{skills.length ? "No skills match." : "No skills published yet."}</p>
+            <p className="mt-1 text-[11px] leading-5 text-muted">{skills.length ? "Try a different search or clear the filters." : "Published skills will appear here."}</p>
+            {skills.length > 0 && (
+              <button type="button" onClick={() => { setQuery(""); setTag(null); }} className="button-secondary mt-4 text-[11px]">
+                Clear filters
+              </button>
+            )}
+          </div>
+        )}
       </section>
 
       <section aria-label="Recommended" className="mt-14">
@@ -137,11 +143,16 @@ export function CatalogPage({ skills, recommendations }: CatalogPageProps) {
               </li>
             );
           })}
-          {recommendations.length === 0 && <li className="border-b border-border py-4 text-[11px] text-muted">Nothing here yet.</li>}
+          {recommendations.length === 0 && (
+            <li className="border-b border-border py-8 text-center">
+              <p className="text-[12px] text-foreground">Nothing here yet.</p>
+              <p className="mt-1 text-[11px] text-muted">Recommendations appear once one is added.</p>
+            </li>
+          )}
         </ul>
       </section>
 
-      <footer className="mt-14 border-t border-border pt-4 text-[10px] text-muted">
+      <footer className="mt-10 text-[10px] text-muted">
         Install with <a className="underline decoration-white/20 underline-offset-4 hover:text-foreground" href="https://github.com/vercel-labs/skills">the Skills CLI</a>.
       </footer>
     </main>

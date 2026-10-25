@@ -25,11 +25,21 @@ export function CopyButton({ value, className = "row-action min-w-20", label = "
       if (request.current === current) setStatus("error");
     }
   }
-  return <span className="inline-flex shrink-0 flex-col justify-center">
+  const text = status === "copied" ? "Copied" : status === "copying" ? "Copying..." : status === "error" ? "Retry copy" : label;
+  return <span className="relative inline-flex shrink-0 flex-col justify-center">
     <button type="button" onClick={copy} disabled={status === "copying"} className={className} aria-label={status === "error" ? "Copy failed. Select the text and copy it manually, or retry." : undefined}>
-      {status === "copying" ? <LoaderCircle className="size-3 animate-spin" aria-hidden /> : status === "copied" ? <Check className="size-3 text-accent" aria-hidden /> : <Copy className="size-3" aria-hidden />}
-      {status === "copied" ? "Copied" : status === "copying" ? "Copying..." : status === "error" ? "Retry copy" : label}
+      <span className="relative inline-flex items-center justify-center">
+        <span aria-hidden className="invisible inline-flex items-center gap-1.5">
+          <LoaderCircle className="size-3" />
+          <span>Retry copy</span>
+        </span>
+        <span className="absolute inset-0 inline-flex items-center justify-center gap-1.5">
+          {status === "copying" ? <LoaderCircle className="size-3 animate-spin" aria-hidden /> : status === "copied" ? <Check className="size-3 text-accent" aria-hidden /> : <Copy className="size-3" aria-hidden />}
+          {text}
+        </span>
+      </span>
     </button>
-    <span role="status" className={status === "error" ? "mt-1 max-w-32 text-[10px] text-red-300" : "sr-only"}>{status === "copied" ? "Copied to clipboard." : status === "error" ? "Copy failed. Select and copy the text manually." : ""}</span>
+    {status === "error" && <span role="status" className="absolute top-full left-0 z-10 mt-1 w-max max-w-48 rounded-md border border-red-400/30 bg-panel px-2 py-1 text-[10px] text-red-300">Copy failed. Select and copy manually.</span>}
+    <span role="status" className="sr-only">{status === "copied" ? "Copied to clipboard." : status === "error" ? "Copy failed. Select and copy the text manually." : ""}</span>
   </span>;
 }

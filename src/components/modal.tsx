@@ -30,7 +30,7 @@ export function Modal({ title, description, trigger, children, open, onOpenChang
     <Dialog.Portal>
       <Dialog.Backdrop className="modal-backdrop fixed inset-0 z-40 bg-black/70 backdrop-blur-[3px]" />
       <Dialog.Viewport className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
-        <Dialog.Popup ref={popup} className={`modal-popup relative w-full ${destructive ? "max-w-sm" : "max-w-md"} max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-xl border border-white/15 bg-panel p-6 shadow-2xl`} initialFocus={() => popup.current?.querySelector<HTMLElement>(destructive ? "[data-modal-cancel]" : "[data-modal-input]") ?? true}>
+        <Dialog.Popup ref={popup} className={`modal-popup relative w-full ${destructive ? "max-w-sm" : "max-w-md"} max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-xl border border-white/15 bg-panel p-5 shadow-2xl`} initialFocus={() => popup.current?.querySelector<HTMLElement>(destructive ? "[data-modal-cancel]" : "[data-modal-input]") ?? true}>
           <div className="flex items-start justify-between gap-4">
             <div>
               <Dialog.Title className="text-sm font-medium">{title}</Dialog.Title>

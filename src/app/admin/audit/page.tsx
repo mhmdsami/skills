@@ -12,14 +12,21 @@ export default async function AuditPage() {
       <p className="mt-1 text-[11px] text-muted">Key usage and admin changes, newest first.</p>
       <ul className="mt-5 border-t border-border">
         {audit.length ? audit.map((entry) => (
-          <li key={entry.id} className="dashboard-row flex items-baseline gap-4 border-b border-border py-2.5">
+          <li key={entry.id} className="dashboard-row flex items-baseline gap-4 border-b px-3 border-border py-2.5">
             <span className="shrink-0 text-[11px] text-muted">{formatDate(entry.createdAt)}</span>
             <span className="min-w-0 flex-1 truncate text-[12px] text-foreground">
               {entry.action} {entry.target && <span className="text-muted">· {entry.target}</span>}
             </span>
             <span className="hidden shrink-0 text-[11px] text-muted sm:block">{entry.actor}</span>
           </li>
-        )) : <li className="border-b border-border py-4 text-[11px] text-muted">Nothing recorded yet.</li>}
+        )) : (
+          <li className="border-b border-border">
+            <div className="flex flex-col items-center py-12 text-center">
+              <p className="text-[13px] text-foreground">Nothing recorded yet.</p>
+              <p className="mt-1 text-[11px] leading-5 text-muted">Key usage and admin changes appear here.</p>
+            </div>
+          </li>
+        )}
       </ul>
     </div>
   );

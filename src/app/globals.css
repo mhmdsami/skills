@@ -8,6 +8,7 @@
   --border: rgb(255 255 255 / 10%);
   --panel: #151613;
   --accent: #c1e6a4;
+  --accent-foreground: #171a14;
 }
 
 @theme inline {
@@ -23,6 +24,7 @@
 
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
+html { scrollbar-gutter: stable; }
 body {
   position: relative;
   margin: 0;
@@ -52,8 +54,8 @@ button:not(:disabled) { cursor: pointer; }
     transition: background-color 160ms, border-color 160ms, color 160ms, opacity 160ms, box-shadow 160ms, transform 160ms;
   }
   .button-primary, .button-secondary, .button-danger { min-height: 36px; padding: 8px 14px; border: 1px solid transparent; }
-  .button-primary { background: var(--accent); color: #171a14; font-weight: 500; }
-  .button-primary:hover:not(:disabled) { background: #d1efbb; box-shadow: 0 3px 16px rgb(193 230 164 / 12%); }
+  .button-primary { background: var(--accent); color: var(--accent-foreground); font-weight: 500; }
+  .button-primary:hover:not(:disabled) { background: var(--accent); box-shadow: 0 0 0 1px rgb(255 255 255 / 14%); }
   .button-secondary { border-color: var(--border); color: var(--muted); }
   .button-secondary:hover:not(:disabled) { color: var(--foreground); border-color: rgb(255 255 255 / 25%); background: rgb(255 255 255 / 4%); }
   .button-danger { border-color: rgb(248 113 113 / 35%); background: rgb(248 113 113 / 10%); color: #fca5a5; font-weight: 500; }
@@ -62,7 +64,7 @@ button:not(:disabled) { cursor: pointer; }
   .row-action:hover:not(:disabled) { color: var(--foreground); background: rgb(255 255 255 / 4%); }
   .button-primary:active:not(:disabled), .button-secondary:active:not(:disabled), .button-danger:active:not(:disabled) { transform: translateY(1px) scale(0.98); }
   .field-label { display: block; font-size: 11px; color: var(--muted); }
-  .field-input { display: block; margin-top: 8px; height: 40px; width: 100%; border: 1px solid var(--border); border-radius: 8px; background: var(--background); padding: 0 12px; font-size: 13px; color: var(--foreground); outline: none; transition: border-color 160ms, box-shadow 160ms; }
+  .field-input { display: block; margin-top: 8px; height: 36px; width: 100%; border: 1px solid var(--border); border-radius: 8px; background: var(--background); padding: 0 12px; font-size: 13px; color: var(--foreground); outline: none; transition: border-color 160ms, box-shadow 160ms; }
   .field-input:focus { border-color: rgb(193 230 164 / 50%); box-shadow: 0 0 0 3px rgb(193 230 164 / 6%); }
   .field-input::placeholder { color: var(--muted); }
   .dashboard-row { transition: background-color 160ms, box-shadow 160ms; }
@@ -71,7 +73,9 @@ button:not(:disabled) { cursor: pointer; }
 }
 
 button:disabled { cursor: not-allowed; opacity: 0.5; }
-:where(button, a, input, textarea, select):focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+.button-primary:disabled { opacity: 1; background: var(--accent); color: rgb(23 26 20 / 45%); }
+:where(button, a, select):focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 select { font-family: inherit; }
 a { transition: color 160ms, background-color 160ms, border-color 160ms; }
 .modal-backdrop { transition: opacity 180ms; }
