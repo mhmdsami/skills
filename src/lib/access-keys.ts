@@ -9,17 +9,6 @@ function hash(token: string): Promise<string> {
   });
 }
 
-function rows<T>(query: { results?: T[] }): T[] {
-  return query.results ?? [];
-}
-
-/** Constant-time enough: both sides are fixed-length hex digests of a high-entropy token. */
-function digestEqual(a: string, b: string): boolean {
-  let diff = 0;
-  for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
 function statusOf(expiresAt: number | null, revokedAt: number | null): AccessKeyStatus {
   if (revokedAt) return "revoked";
   if (expiresAt && expiresAt <= Date.now()) return "expired";
@@ -67,18 +56,30 @@ export async function createKey(name: string, slugs: string[], expiresAt: number
 }
 
 export async function listKeys(): Promise<AccessKeyView[]> {
-  const stored = rows(
-    await env().DB.prepare(
-      "SELECT id, name, slugs, expires_at AS expiresAt, revoked_at AS revokedAt, last_used_at AS lastUsedAt FROM access_keys ORDER BY created_at DESC"
-    ).all<{
-      id: string;
-      name: string;
-      slugs: string;
-      expiresAt: number | null;
-      revokedAt: number | null;
-      lastUsedAt: number | null;
-    }>()
-  );
+  const stored: {
+    id: string;
+    name: string;
+    slugs: string;
+    expiresAt: number | null;
+    revokedAt: number | null;
+    lastUsedAt: number | null;
+  }[] = [];
+  for (let offset = 0; ; offset += 500) {
+    const rows = await env().DB.prepare(
+      "SELECT id, name, slugs, expires_at AS expiresAt, revoked_at AS revokedAt, last_used_at AS lastUsedAt FROM access_keys ORDER BY created_at DESC LIMIT ? OFFSET ?"
+    )
+      .bind(500, offset)
+      .all<{
+        id: string;
+        name: string;
+        slugs: string;
+        expiresAt: number | null;
+        revokedAt: number | null;
+        lastUsedAt: number | null;
+      }>();
+    stored.push(...rows.results);
+    if (rows.results.length < 500) break;
+  }
   return stored.map((row) => ({
     id: row.id,
     name: row.name,

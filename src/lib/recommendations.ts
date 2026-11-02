@@ -4,10 +4,17 @@ import type { Recommendation } from "./types.ts";
 export type { Recommendation };
 
 export async function listRecommendations(): Promise<Recommendation[]> {
-  const { results } = await env().DB.prepare(
-    "SELECT id, name, description, source FROM recommendations ORDER BY sort, name"
-  ).all<Recommendation>();
-  return results ?? [];
+  const recommendations: Recommendation[] = [];
+  for (let offset = 0; ; offset += 500) {
+    const { results } = await env().DB.prepare(
+      "SELECT id, name, description, source FROM recommendations ORDER BY sort, name LIMIT ? OFFSET ?"
+    )
+      .bind(500, offset)
+      .all<Recommendation>();
+    recommendations.push(...results);
+    if (results.length < 500) break;
+  }
+  return recommendations;
 }
 
 export async function putRecommendation(input: { id: string; name: string; description: string; source: string }): Promise<void> {

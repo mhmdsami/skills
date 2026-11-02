@@ -67,12 +67,17 @@ export async function getPrivateSkill(e: Env, slug: string): Promise<string | nu
 }
 
 export async function listVersions(e: Env, slug: string): Promise<PrivateSkillVersion[]> {
-  const { results } = await e.DB.prepare(
-    "SELECT id, slug, author, created_at AS createdAt FROM private_skill_versions WHERE slug = ? ORDER BY created_at DESC"
-  )
-    .bind(slug)
-    .all<PrivateSkillVersion>();
-  return results ?? [];
+  const versions: PrivateSkillVersion[] = [];
+  for (let offset = 0; ; offset += 200) {
+    const { results } = await e.DB.prepare(
+      "SELECT id, slug, author, created_at AS createdAt FROM private_skill_versions WHERE slug = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+    )
+      .bind(slug, 200, offset)
+      .all<PrivateSkillVersion>();
+    versions.push(...results);
+    if (results.length < 200) break;
+  }
+  return versions;
 }
 
 export async function getVersionContent(e: Env, slug: string, id: string): Promise<string | null> {
@@ -93,18 +98,29 @@ export async function deletePrivateSkill(e: Env, slug: string): Promise<void> {
 }
 
 export async function listPrivateSkills(e: Env): Promise<PrivateSkillMeta[]> {
-  const rows = await e.DB.prepare("SELECT slug, name, description, tags, updated_at FROM private_skills ORDER BY name").all<{
-    slug: string;
-    name: string;
-    description: string;
-    tags: string;
-    updated_at: number;
-  }>();
-  return rows.results.map((row) => ({
-    slug: row.slug,
-    name: row.name,
-    description: row.description,
-    tags: row.tags ? row.tags.split(",").filter(Boolean) : [],
-    updatedAt: row.updated_at,
-  }));
+  const skills: PrivateSkillMeta[] = [];
+  for (let offset = 0; ; offset += 500) {
+    const rows = await e.DB.prepare(
+      "SELECT slug, name, description, tags, updated_at FROM private_skills ORDER BY name LIMIT ? OFFSET ?"
+    )
+      .bind(500, offset)
+      .all<{
+        slug: string;
+        name: string;
+        description: string;
+        tags: string;
+        updated_at: number;
+      }>();
+    skills.push(
+      ...rows.results.map((row) => ({
+        slug: row.slug,
+        name: row.name,
+        description: row.description,
+        tags: row.tags ? row.tags.split(",").filter(Boolean) : [],
+        updatedAt: row.updated_at,
+      }))
+    );
+    if (rows.results.length < 500) break;
+  }
+  return skills;
 }
