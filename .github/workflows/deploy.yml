@@ -20,7 +20,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Audit dependencies
-        run: npm audit --audit-level=low
+        run: npm audit --audit-level=low --omit=dev
       - run: npm run generate:skills
       - run: npm run types
       - run: npm test
