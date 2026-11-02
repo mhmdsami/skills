@@ -20,26 +20,19 @@ export default async function Image() {
           height: "100%",
           padding: 72,
           backgroundColor: "#111210",
+          backgroundImage: "radial-gradient(60% 60% at 18% 12%, rgba(193,230,164,0.12), transparent 70%)",
           color: "#ecece8",
           fontFamily: OG_MONO,
         }}
       >
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 0,
-            backgroundImage: "radial-gradient(60% 60% at 18% 12%, rgba(193,230,164,0.12), transparent 70%)",
-          }}
-        />
-        <div style={{ display: "flex", alignItems: "center", gap: 16, position: "relative", zIndex: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <svg width="30" height="30" viewBox="0 0 32 32">
             <path d="M16 3.5 18.9 13.1 28.5 16 18.9 18.9 16 28.5 13.1 18.9 3.5 16 13.1 13.1Z" fill="#c1e6a4" />
           </svg>
           <span style={{ fontSize: 40, lineHeight: 1, letterSpacing: "-0.03em" }}>skills</span>
         </div>
-        <span style={{ fontSize: 64, lineHeight: 1.1, letterSpacing: "-0.03em", position: "relative", zIndex: 1 }}>Skills for coding agents</span>
-        <div style={{ display: "flex", justifyContent: "flex-end", position: "relative", zIndex: 1 }}>
+        <span style={{ fontSize: 64, lineHeight: 1.1, letterSpacing: "-0.03em" }}>Skills for coding agents</span>
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <span style={{ fontSize: 18, color: "#6b6b66" }}>skills.sam1.space</span>
         </div>
       </div>
