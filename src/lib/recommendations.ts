@@ -7,7 +7,7 @@ export async function listRecommendations(): Promise<Recommendation[]> {
   const recommendations: Recommendation[] = [];
   for (let offset = 0; ; offset += 500) {
     const { results } = await env().DB.prepare(
-      "SELECT id, name, description, source FROM recommendations ORDER BY sort, name LIMIT ? OFFSET ?"
+      "SELECT id, name, description, source FROM recommendations ORDER BY sort, name, id LIMIT ? OFFSET ?"
     )
       .bind(500, offset)
       .all<Recommendation>();

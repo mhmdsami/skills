@@ -70,7 +70,7 @@ export async function listVersions(e: Env, slug: string): Promise<PrivateSkillVe
   const versions: PrivateSkillVersion[] = [];
   for (let offset = 0; ; offset += 200) {
     const { results } = await e.DB.prepare(
-      "SELECT id, slug, author, created_at AS createdAt FROM private_skill_versions WHERE slug = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+      "SELECT id, slug, author, created_at AS createdAt FROM private_skill_versions WHERE slug = ? ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?"
     )
       .bind(slug, 200, offset)
       .all<PrivateSkillVersion>();
@@ -101,7 +101,7 @@ export async function listPrivateSkills(e: Env): Promise<PrivateSkillMeta[]> {
   const skills: PrivateSkillMeta[] = [];
   for (let offset = 0; ; offset += 500) {
     const rows = await e.DB.prepare(
-      "SELECT slug, name, description, tags, updated_at FROM private_skills ORDER BY name LIMIT ? OFFSET ?"
+      "SELECT slug, name, description, tags, updated_at FROM private_skills ORDER BY name, slug LIMIT ? OFFSET ?"
     )
       .bind(500, offset)
       .all<{

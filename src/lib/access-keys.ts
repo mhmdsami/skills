@@ -66,7 +66,7 @@ export async function listKeys(): Promise<AccessKeyView[]> {
   }[] = [];
   for (let offset = 0; ; offset += 500) {
     const rows = await env().DB.prepare(
-      "SELECT id, name, slugs, expires_at AS expiresAt, revoked_at AS revokedAt, last_used_at AS lastUsedAt FROM access_keys ORDER BY created_at DESC LIMIT ? OFFSET ?"
+      "SELECT id, name, slugs, expires_at AS expiresAt, revoked_at AS revokedAt, last_used_at AS lastUsedAt FROM access_keys ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?"
     )
       .bind(500, offset)
       .all<{
