@@ -32,14 +32,11 @@ Google OAuth redirect URI: `https://skills.sam1.space/api/auth/callback/google`.
 The deploy workflow runs:
 
 1. `npm ci`
-2. `npm audit --audit-level=low`
-3. `npm run generate:skills`
-4. `npm run types`
-5. `npm test`
-6. D1 migrations (`wrangler d1 migrations apply skills --remote`)
-7. `npm run deploy`
+2. D1 migrations (`wrangler d1 migrations apply skills --remote`)
+3. `npm run deploy` (generates skills, builds with OpenNext, deploys)
 
-Configure `CLOUDFLARE_API_TOKEN` as a repository secret and `CLOUDFLARE_ACCOUNT_ID` as a repository variable.
+Checks (generate, types, tests, audit) run in the `pre-commit` hook via
+`npm run gate`, and in the manual-only `.github/workflows/ci.yml`. Configure `CLOUDFLARE_API_TOKEN` as a repository secret and `CLOUDFLARE_ACCOUNT_ID` as a repository variable.
 
 ## Manual deploy
 

@@ -19,11 +19,6 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - name: Audit dependencies
-        run: npm audit --audit-level=low
-      - run: npm run generate:skills
-      - run: npm run types
-      - run: npm test
       - name: Apply D1 migrations
         run: npx wrangler d1 migrations apply skills --remote
         env:
