@@ -26,10 +26,10 @@ export function GoogleSignIn({ next }: { next?: string }) {
       type="button"
       onClick={signIn}
       disabled={busy}
-      className="flex h-10 w-full items-center justify-center gap-2 rounded-md border border-border text-[12px] text-foreground transition hover:border-white/25 disabled:opacity-50"
+      className="button-primary h-9 w-full text-sm"
     >
       {busy ? (
-        "Redirecting..."
+        "Redirecting…"
       ) : (
         <>
           <svg viewBox="0 0 24 24" className="size-4" aria-hidden>
