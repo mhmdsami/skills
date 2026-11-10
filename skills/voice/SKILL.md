@@ -18,6 +18,17 @@ Choose the channel below. Preserve facts and intent; do not invent certainty to 
 - One sentence can stand alone. Do not turn it into a bullet, repeat the diff, or add bold emphasis. Use bold for document labels only.
 - Casual markers such as iirc, tbf, no?, rn, and cause are optional, never decoration. The occasional question-then-continuation form is natural: is this correct?, seems inverted.
 
+## Prose quality
+
+- Preserve meaning, evidence, uncertainty, names, identifiers, and exact quotes.
+- Answer first. Progress updates say what changed and what happens next.
+- In plans, name the action, its effect, and how success will be checked. Replace vague steps with the behavior to change.
+- Prefer familiar words, consistent names, and direct verbs. Describe mechanisms and observable results.
+- Cut inflated claims, decorative metaphors, stock contrasts, filler transitions, empty modifiers, and rhetorical fragments. Keep comparisons that explain a real tradeoff.
+- Split sentences that need rereading. Prefer periods and commas over em dashes.
+- Use paragraphs for connected explanation, lists for steps or parallel items, and tables for comparisons. Let the content decide the count.
+- Avoid labels that repeat the bullet, decorative emoji, scattered bold, and headings that restate their section. Use sentence case for headings.
+
 ## PRs
 
 Length follows intent:
