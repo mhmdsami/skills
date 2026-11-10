@@ -1,5 +1,5 @@
 import { env } from "@/env";
-import { getPrivateSkill } from "@/lib/private-skills";
+import { getPrivateSkill, getPrivateSkillMeta } from "@/lib/private-skills";
 import { authorizeSlug } from "@/lib/access-keys";
 import { validSlug } from "@/lib/token";
 import { writeAudit } from "@/lib/audit";
@@ -10,9 +10,11 @@ export async function GET(request: Request) {
   const slug = decodeURIComponent(new URL(request.url).pathname.split("/").filter(Boolean).at(-1) ?? "");
   if (!validSlug(slug)) return new Response("Not found", { status: 404 });
 
-  // Key-gated: a revoked, expired, or out-of-scope key is indistinguishable from a missing slug.
   const keyId = await authorizeSlug(request, slug);
   if (!keyId) return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
+
+  const meta = await getPrivateSkillMeta(env(), slug);
+  if (!meta || meta.archivedAt) return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
 
   const body = await getPrivateSkill(env(), slug);
   if (!body) return new Response("Not found", { status: 404 });

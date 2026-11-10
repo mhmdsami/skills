@@ -5,10 +5,10 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, RotateCcw } from "lucide-react";
 import type { PrivateSkillVersion } from "@/lib/private-skills";
 import { MutationForm, SubmitButton } from "@/components/mutation-form";
-import { ConfirmDelete } from "@/components/confirm-delete";
-import { restorePrivateSkillAction, savePrivateSkillAction } from "@/app/admin/actions";
+import { ConfirmAction } from "@/components/confirm-action";
+import { restorePrivateSkillAction, savePrivateSkillAction, unarchivePrivateSkillAction } from "@/app/admin/actions";
 
-export function SkillEditor({ slug, initialContent, versions }: { slug: string; initialContent: string; versions: PrivateSkillVersion[] }) {
+export function SkillEditor({ slug, initialContent, versions, archived = false }: { slug: string; initialContent: string; versions: PrivateSkillVersion[]; archived?: boolean }) {
   const isNew = slug === "new";
   const [content, setContent] = useState(initialContent);
   const [savedContent, setSavedContent] = useState(initialContent);
@@ -33,6 +33,10 @@ export function SkillEditor({ slug, initialContent, versions }: { slug: string; 
   }, [dirty]);
   return <div className="space-y-10">
     <div className="flex items-center justify-between gap-4"><h1 className="text-lg font-medium tracking-tight">{isNew ? "New private skill" : slug}</h1><Link href="/admin" className="row-action"><ArrowLeft className="size-3" /> Back</Link></div>
+    {archived && <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-white/[0.02] px-3 py-2">
+      <p className="text-[12px] text-muted">Archived. The private link returns 404 until you restore this skill.</p>
+      <ConfirmAction action={unarchivePrivateSkillAction} hidden={{ slug }} title={`Restore ${slug}?`} body="The private link starts working again for keys scoped to this skill." trigger="Restore" pendingLabel="Restoring..." destructive={false} />
+    </div>}
     <MutationForm action={savePrivateSkillAction} onSuccess={() => setSavedContent(content)} className="space-y-4">
       {(_state, pending) => <>
         {!isNew && <input type="hidden" name="slug" value={slug} />}
@@ -48,7 +52,7 @@ export function SkillEditor({ slug, initialContent, versions }: { slug: string; 
       <ul className="mt-4 border-t border-border">{versions.map((version) => <li key={version.id} className="dashboard-row flex flex-wrap items-center gap-4 border-b px-3 border-border py-3">
         <time className="flex-1 text-[12px]" dateTime={new Date(version.createdAt).toISOString()}>{new Date(version.createdAt).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</time>
         <span className="hidden text-[11px] text-muted sm:block">{version.author || "api"}</span>
-        <ConfirmDelete action={restorePrivateSkillAction} hidden={{ slug, id: version.id }} title="Restore this version?" body={dirty ? "Restoring replaces the current skill and discards your unsaved edits. The saved history is kept." : "Restoring replaces the current skill and keeps the saved history."} trigger="Restore" pendingLabel="Restoring..." />
+        <ConfirmAction action={restorePrivateSkillAction} hidden={{ slug, id: version.id }} title="Restore this version?" body={dirty ? "Restoring replaces the current skill and discards your unsaved edits. The saved history is kept." : "Restoring replaces the current skill and keeps the saved history."} trigger="Restore" pendingLabel="Restoring..." />
       </li>)}</ul>
       <p className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-muted"><RotateCcw className="size-3" /> You can restore any saved version.</p>
     </section>}

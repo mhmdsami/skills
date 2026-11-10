@@ -8,7 +8,8 @@ const maxContentLength = 200_000;
 
 export async function GET(request: Request) {
   if (!authorized(request, env().SKILLS_TOKEN)) return Response.json({ error: "Unauthorized" }, { status: 401 });
-  return Response.json({ skills: await listPrivateSkills(env()) });
+  const archived = new URL(request.url).searchParams.get("archived") === "1";
+  return Response.json({ skills: await listPrivateSkills(env(), { archived }) });
 }
 
 export async function POST(request: Request) {

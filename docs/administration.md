@@ -33,7 +33,7 @@ Keep `ADMIN_EMAILS` a secret: it contains real addresses and this repo is public
 
 ## Dashboard
 
-- **Private skills**: create, edit as raw `SKILL.md`, inspect history, restore, delete. Each save writes a version to R2 and D1.
+- **Private skills**: create, edit as raw `SKILL.md`, inspect history, restore, archive, and delete. Each save writes a version to R2 and D1. Archived skills leave the active list and stop serving; restore or delete them permanently from the Archived section.
 - **Keys**: scope a key to selected slugs, set an expiry, and revoke it. Tokens are shown once and stored hashed.
 - **Logs**: key usage and admin changes, newest first, from the audit log.
 - **Recommendations**: name, source, and description for the catalog's Recommended section.

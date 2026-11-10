@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireViewer, type Viewer } from "@/lib/session";
-import { deletePrivateSkill, getVersionContent, parseFrontmatter, putPrivateSkill } from "@/lib/private-skills";
+import { archivePrivateSkill, deletePrivateSkill, getVersionContent, parseFrontmatter, putPrivateSkill, unarchivePrivateSkill } from "@/lib/private-skills";
 import { deleteRecommendation, putRecommendation } from "@/lib/recommendations";
 import { createKey, revokeKey } from "@/lib/access-keys";
 import { writeAudit } from "@/lib/audit";
@@ -52,6 +52,26 @@ export async function restorePrivateSkillAction(formData: FormData): Promise<For
     await putPrivateSkill(env(), slug, content, viewer.email);
     await writeAudit(viewer.email, "skill.restore", slug);
     return { success: true, message: "Version restored." };
+  });
+}
+
+export async function archivePrivateSkillAction(formData: FormData): Promise<FormState> {
+  return mutate(async (viewer) => {
+    const slug = String(formData.get("slug") ?? "");
+    if (!validSlug(slug)) return { error: "This skill is invalid." };
+    await archivePrivateSkill(env(), slug);
+    await writeAudit(viewer.email, "skill.archive", slug);
+    return { success: true, message: "Skill archived." };
+  });
+}
+
+export async function unarchivePrivateSkillAction(formData: FormData): Promise<FormState> {
+  return mutate(async (viewer) => {
+    const slug = String(formData.get("slug") ?? "");
+    if (!validSlug(slug)) return { error: "This skill is invalid." };
+    await unarchivePrivateSkill(env(), slug);
+    await writeAudit(viewer.email, "skill.unarchive", slug);
+    return { success: true, message: "Skill restored." };
   });
 }
 

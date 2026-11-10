@@ -10,6 +10,16 @@ export type PrivateSkillMeta = {
   description: string;
   tags: string[];
   updatedAt?: number;
+  archivedAt?: number;
+};
+
+type PrivateSkillRow = {
+  slug: string;
+  name: string;
+  description: string;
+  tags: string;
+  updated_at: number;
+  archived_at: number | null;
 };
 
 export type PrivateSkillVersion = {
@@ -60,10 +70,40 @@ export async function putPrivateSkill(e: Env, slug: string, content: string, aut
   return meta;
 }
 
+export function toPrivateSkillMeta(row: PrivateSkillRow): PrivateSkillMeta {
+  return {
+    slug: row.slug,
+    name: row.name,
+    description: row.description,
+    tags: row.tags ? row.tags.split(",").filter(Boolean) : [],
+    updatedAt: row.updated_at,
+    archivedAt: row.archived_at ?? undefined,
+  };
+}
+
 export async function getPrivateSkill(e: Env, slug: string): Promise<string | null> {
   const object = await e.BUCKET.get(key(slug));
   if (!object) return null;
   return object.text();
+}
+
+export async function getPrivateSkillMeta(e: Env, slug: string): Promise<PrivateSkillMeta | null> {
+  const row = await e.DB.prepare(
+    "SELECT slug, name, description, tags, updated_at, archived_at FROM private_skills WHERE slug = ?"
+  )
+    .bind(slug)
+    .first<PrivateSkillRow>();
+  return row ? toPrivateSkillMeta(row) : null;
+}
+
+export async function archivePrivateSkill(e: Env, slug: string): Promise<void> {
+  await e.DB.prepare("UPDATE private_skills SET archived_at = ? WHERE slug = ? AND archived_at IS NULL")
+    .bind(Date.now(), slug)
+    .run();
+}
+
+export async function unarchivePrivateSkill(e: Env, slug: string): Promise<void> {
+  await e.DB.prepare("UPDATE private_skills SET archived_at = NULL WHERE slug = ?").bind(slug).run();
 }
 
 export async function listVersions(e: Env, slug: string): Promise<PrivateSkillVersion[]> {
@@ -97,29 +137,15 @@ export async function deletePrivateSkill(e: Env, slug: string): Promise<void> {
   ]);
 }
 
-export async function listPrivateSkills(e: Env): Promise<PrivateSkillMeta[]> {
+export async function listPrivateSkills(e: Env, { archived = false }: { archived?: boolean } = {}): Promise<PrivateSkillMeta[]> {
   const skills: PrivateSkillMeta[] = [];
   for (let offset = 0; ; offset += 500) {
     const rows = await e.DB.prepare(
-      "SELECT slug, name, description, tags, updated_at FROM private_skills ORDER BY name, slug LIMIT ? OFFSET ?"
+      `SELECT slug, name, description, tags, updated_at, archived_at FROM private_skills WHERE archived_at IS ${archived ? "NOT NULL" : "NULL"} ORDER BY name, slug LIMIT ? OFFSET ?`
     )
       .bind(500, offset)
-      .all<{
-        slug: string;
-        name: string;
-        description: string;
-        tags: string;
-        updated_at: number;
-      }>();
-    skills.push(
-      ...rows.results.map((row) => ({
-        slug: row.slug,
-        name: row.name,
-        description: row.description,
-        tags: row.tags ? row.tags.split(",").filter(Boolean) : [],
-        updatedAt: row.updated_at,
-      }))
-    );
+      .all<PrivateSkillRow>();
+    skills.push(...rows.results.map(toPrivateSkillMeta));
     if (rows.results.length < 500) break;
   }
   return skills;

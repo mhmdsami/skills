@@ -2,14 +2,18 @@ import Link from "next/link";
 import { env } from "@/env";
 import { listPrivateSkills } from "@/lib/private-skills";
 import { listRecommendations } from "@/lib/recommendations";
-import { deletePrivateSkillAction } from "./actions";
-import { ConfirmDelete } from "@/components/confirm-delete";
+import { archivePrivateSkillAction, deletePrivateSkillAction, unarchivePrivateSkillAction } from "./actions";
+import { ConfirmAction } from "@/components/confirm-action";
 import { RecommendationsPanel } from "./recommendations";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const [skills, recommendations] = await Promise.all([listPrivateSkills(env()), listRecommendations()]);
+  const [skills, archivedSkills, recommendations] = await Promise.all([
+    listPrivateSkills(env()),
+    listPrivateSkills(env(), { archived: true }),
+    listRecommendations(),
+  ]);
 
   return (
     <div className="space-y-12">
@@ -29,11 +33,14 @@ export default async function AdminPage() {
                 <div className="mt-0.5 truncate text-[11px] text-muted">{skill.description || "No description"}</div>
               </div>
               <Link href={`/admin/skills/${skill.slug}`} className="row-action">Edit</Link>
-              <ConfirmDelete
-                action={deletePrivateSkillAction}
+              <ConfirmAction
+                action={archivePrivateSkillAction}
                 hidden={{ slug: skill.slug }}
-                title={`Delete ${skill.slug}?`}
-                body="Removes the skill and all of its versions from storage. The unlisted URL stops working."
+                title={`Archive ${skill.slug}?`}
+                body="Its private link stops working. The skill and its versions stay in the archive."
+                trigger="Archive"
+                pendingLabel="Archiving..."
+                destructive={false}
               />
             </li>
           )) : (
@@ -47,6 +54,41 @@ export default async function AdminPage() {
           )}
         </ul>
       </section>
+
+      {archivedSkills.length > 0 && <section>
+        <div>
+          <h2 className="text-lg font-medium tracking-tight">Archived</h2>
+          <p className="mt-1 text-[12px] text-muted">Links stay off. Restore a skill to publish it again, or delete it permanently.</p>
+        </div>
+        <ul className="mt-5 border-t border-border">
+          {archivedSkills.map((skill) => (
+            <li key={skill.slug} className="dashboard-row flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-3 border-border py-3">
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[13px] text-foreground">{skill.name}</div>
+                <div className="mt-0.5 truncate text-[11px] text-muted">{skill.description || "No description"}</div>
+              </div>
+              <Link href={`/admin/skills/${skill.slug}`} className="row-action">Edit</Link>
+              <ConfirmAction
+                action={unarchivePrivateSkillAction}
+                hidden={{ slug: skill.slug }}
+                title={`Restore ${skill.slug}?`}
+                body="The private link starts working again for keys scoped to this skill."
+                trigger="Restore"
+                pendingLabel="Restoring..."
+                destructive={false}
+              />
+              <ConfirmAction
+                action={deletePrivateSkillAction}
+                hidden={{ slug: skill.slug }}
+                title={`Delete ${skill.slug}?`}
+                body="Removes the skill and all of its versions from storage. This cannot be undone."
+                trigger="Delete permanently"
+                pendingLabel="Deleting..."
+              />
+            </li>
+          ))}
+        </ul>
+      </section>}
 
       <RecommendationsPanel recommendations={recommendations} />
     </div>

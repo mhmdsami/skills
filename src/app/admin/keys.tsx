@@ -5,7 +5,7 @@ import { ChevronDown } from "lucide-react";
 import type { AccessKeyView } from "@/lib/types";
 import { MultiSelect } from "@/components/multi-select";
 import { CopyButton } from "@/components/copy-button";
-import { ConfirmDelete } from "@/components/confirm-delete";
+import { ConfirmAction } from "@/components/confirm-action";
 import { Modal, ModalCancel } from "@/components/modal";
 import { MutationForm, SubmitButton } from "@/components/mutation-form";
 import { createKeyAction, revokeKeyAction } from "./actions";
@@ -62,7 +62,7 @@ export function KeysPanel({ keys, slugs }: { keys: AccessKeyView[]; slugs: strin
           {row.lastUsedAt ? ` · last used ${new Date(row.lastUsedAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}` : " · never used"}
         </div></div>
         <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] ${row.status === "active" ? "border-accent/40 bg-accent/10 text-accent" : row.status === "revoked" ? "border-red-400/40 bg-red-400/10 text-red-300" : "border-border text-muted"}`}>{row.status}</span>
-        {row.status === "active" && <ConfirmDelete action={revokeKeyAction} hidden={{ id: row.id }} title={`Revoke ${row.name}?`} body="This key will immediately stop granting access to private skills." trigger="Revoke" pendingLabel="Revoking..." />}
+        {row.status === "active" && <ConfirmAction action={revokeKeyAction} hidden={{ id: row.id }} title={`Revoke ${row.name}?`} body="This key will immediately stop granting access to private skills." trigger="Revoke" pendingLabel="Revoking..." />}
       </li>) : (
         <li className="border-b border-border">
           <div className="flex flex-col items-center py-12 text-center">

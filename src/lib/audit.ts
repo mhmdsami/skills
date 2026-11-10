@@ -1,6 +1,6 @@
 import { env } from "@/env";
 
-export type AuditAction = "skill.save" | "skill.delete" | "skill.restore" | "key.create" | "key.revoke" | "key.use" | "rec.save" | "rec.delete";
+export type AuditAction = "skill.save" | "skill.archive" | "skill.unarchive" | "skill.delete" | "skill.restore" | "key.create" | "key.revoke" | "key.use" | "rec.save" | "rec.delete";
 
 export async function writeAudit(actor: string, action: AuditAction, target: string): Promise<void> {
   await env().DB.prepare("INSERT INTO audit_log (id, actor, action, target, created_at) VALUES (?, ?, ?, ?, ?)")

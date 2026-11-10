@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Recommendation } from "@/lib/types";
-import { ConfirmDelete } from "@/components/confirm-delete";
+import { ConfirmAction } from "@/components/confirm-action";
 import { Modal, ModalCancel } from "@/components/modal";
 import { MutationForm, SubmitButton } from "@/components/mutation-form";
 import { deleteRecommendationAction, saveRecommendationAction } from "./actions";
@@ -42,7 +42,7 @@ export function RecommendationsPanel({ recommendations }: { recommendations: Rec
         <div className="min-w-0 flex-1"><div className="truncate text-[13px] text-foreground">{row.name}</div><div className="mt-0.5 truncate text-[12px] text-muted">{row.description || row.source}</div></div>
         <code className="hidden shrink-0 text-[11px] text-muted sm:block">{row.source}</code>
         <button type="button" onClick={() => edit(row)} className="row-action">Edit</button>
-        <ConfirmDelete action={deleteRecommendationAction} hidden={{ id: row.id }} title={`Delete ${row.name}?`} body="Removes it from the catalog's Recommended list." />
+        <ConfirmAction action={deleteRecommendationAction} hidden={{ id: row.id }} title={`Delete ${row.name}?`} body="Removes it from the catalog's Recommended list." />
       </li>) : (
         <li className="border-b border-border">
           <div className="flex flex-col items-center py-12 text-center">

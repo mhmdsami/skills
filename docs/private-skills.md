@@ -30,9 +30,23 @@ Access keys can gate the request with `?key=sk_...`. A key can be limited to spe
 curl https://skills.sam1.space/api/private \
   -H "Authorization: Bearer $SKILLS_TOKEN"
 
+curl "https://skills.sam1.space/api/private?archived=1" \
+  -H "Authorization: Bearer $SKILLS_TOKEN"
+
+curl -X PATCH https://skills.sam1.space/api/private/<name> \
+  -H "Authorization: Bearer $SKILLS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"archived": true}'
+
 curl -X DELETE https://skills.sam1.space/api/private/<name> \
   -H "Authorization: Bearer $SKILLS_TOKEN"
 ```
+
+The list only returns active skills unless you pass `archived=1`. `PATCH` sets the archive flag, and `DELETE` remains a permanent delete.
+
+## Archive
+
+Archiving keeps a private skill and its versions but takes it out of service. It leaves the dashboard's active list, disappears from key scope options, and `/internal/<name>` returns 404 even for a valid key. Restore it from the dashboard's Archived section to serve it again. Permanent delete is only offered there and removes the content and every version.
 
 ## Versions
 
