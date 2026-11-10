@@ -8,8 +8,10 @@ tags: review, git
 
 Use for a remote PR identified by URL, number, or current branch. Local diffs use the normal local review workflow.
 
+Reviews are always read-only: never checkout, edit, or post. When a baseline is given, pin head and baseline SHAs and exclude work merged from main. Report only verified issues with exact lines, and state what you could not verify.
+
 1. Read the diff, full changed files, repository conventions, and related implementations. Verify findings before drafting.
-2. Review both static issues (reuse, types, naming, dead code, stale references, untranslated strings/placeholders) and runtime behavior (awkward inputs, error-state handling, concurrency, performance). Search existing helpers before claiming one is missing.
+2. Review both static issues (reuse, types, naming, dead code, stale references, untranslated strings/placeholders) and runtime behavior (awkward inputs, error-state handling, concurrency, performance). Search existing helpers before claiming one is missing. Also flag docs that restate code (auth requirements, function names, exact values) — they go stale fast. Prefer behavior-level wording; when the PR touches docs, search the repo for the same pattern and report every occurrence.
 3. Draft one issue per comment, usually one or two sentences, in the user's configured style. Explain behavior/consequence; ask when intent or evidence is uncertain. Preserve useful identifiers. Keep location, severity, and investigation notes outside the comment.
 4. Present one exact comment at a time with add/modify/drop/discuss. Wait for each decision; do not post during triage.
 5. Pull the PR's active draft review before making any update: list the PR's reviews and comments and check whether a draft review already exists. If one does, reuse it and merge into it rather than creating a fresh one, since the user may have edited it or added more comments since it was last pulled.
