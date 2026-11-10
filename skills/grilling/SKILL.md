@@ -1,6 +1,6 @@
 ---
 name: grilling
-description: Stress-test a plan, decision, or idea through an interview. Use when the user asks to be grilled or resolve design decisions.
+description: Stress-test a plan, decision, or idea through an interview. Use when the user asks to be grilled, resolve design decisions, or planning-protocol has unresolved decisions.
 tags: planning, decisions
 credit: Matt Pocock's grilling
 credit-url: https://github.com/mattpocock/skills
