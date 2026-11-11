@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+workdir="${TESTING_WORKDIR:-$HOME/.local/state/test-with-agents/workdir}"
+new_session=0
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --workdir) workdir="${2:?--workdir needs a path}"; shift 2 ;;
+    --new) new_session=1; shift ;;
+    *) break ;;
+  esac
+done
+
+provider="${AGENT_TESTING_PROVIDER:-}"
+model="${AGENT_TESTING_MODEL:-}"
+if [ -z "$provider" ] || [ -z "$model" ]; then
+  echo "AGENT_TESTING_PROVIDER and AGENT_TESTING_MODEL must be set" >&2
+  exit 2
+fi
+
+for arg in "$@"; do
+  case "$arg" in
+    -m|--model|--model=*)
+      echo "model is fixed by AGENT_TESTING_PROVIDER/AGENT_TESTING_MODEL" >&2
+      exit 2
+      ;;
+  esac
+done
+
+opencode_bin="${OPENCODE_BIN:-$(command -v opencode || true)}"
+if [ -z "$opencode_bin" ]; then
+  opencode_bin="$HOME/.opencode/bin/opencode"
+fi
+
+mkdir -p "$workdir"
+cd "$workdir"
+
+if [ "$new_session" = 1 ]; then
+  session_id="ses_$(node -e 'process.stdout.write(crypto.randomUUID().replace(/-/g, ""))' 2>/dev/null || openssl rand -hex 16)"
+  printf 'session: %s\n' "$session_id" >&2
+  set -- --session "$session_id" "$@"
+fi
+
+exec "$opencode_bin" run --auto --model "$provider/$model" "$@"

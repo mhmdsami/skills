@@ -9,9 +9,49 @@ tags: testing, browser
 
 `test-with-agents` wraps the OpenCode CLI so smoke sessions share one workdir and model.
 
-## Install
+## Run
 
-Save this as `~/.local/bin/test-with-agents` and make it executable:
+The script is bundled at `scripts/test-with-agents`. Run it directly:
+
+```sh
+mkdir -p ~/.local/state/test-with-agents/runs
+~/.agents/skills/test-with-agents/scripts/test-with-agents --new --title "smoke-<task>" "prompt" > ~/.local/state/test-with-agents/runs/<task>.log 2>&1 &
+```
+
+`--new` prints the session ID to stderr. Keep it.
+
+The script adds `--auto` and always uses `AGENT_TESTING_PROVIDER/AGENT_TESTING_MODEL` as the model. Both are required. `-m` and `--model` are rejected.
+
+## Follow up
+
+```sh
+~/.agents/skills/test-with-agents/scripts/test-with-agents --session ses_... "next instruction"
+```
+
+## Workdir
+
+Default: `~/.local/state/test-with-agents/workdir`. Override with `--workdir <path>` or `TESTING_WORKDIR`.
+
+The default is outside the repo. Use absolute paths for code, or pass a checkout path if the agent must run project commands.
+
+## Read and clean up
+
+Read the log with the Read tool. Delete the session when done:
+
+```sh
+cd ~/.local/state/test-with-agents/workdir && opencode session delete ses_...
+```
+
+## Rules
+
+- One agent at a time unless the task needs parallel runs.
+- Local and dev only. `--auto` approves every tool call the nested agent makes.
+- Give it a narrow prompt: what to open, what to click, what to report.
+- Do not call `opencode run --auto` directly.
+
+## Standalone install
+
+If your installer only copies `SKILL.md`, save this as `~/.local/bin/test-with-agents` and make it executable:
 
 ```sh
 #!/usr/bin/env bash
@@ -60,43 +100,3 @@ fi
 
 exec "$opencode_bin" run --auto --model "$provider/$model" "$@"
 ```
-
-## Start
-
-```sh
-mkdir -p ~/.local/state/test-with-agents/runs
-test-with-agents --new --title "smoke-<task>" "prompt" > ~/.local/state/test-with-agents/runs/<task>.log 2>&1 &
-```
-
-`--new` prints the session ID to stderr. Keep it.
-
-If `test-with-agents` is not on `PATH`, use `~/.local/bin/test-with-agents`.
-
-The wrapper adds `--auto` and always uses `AGENT_TESTING_PROVIDER/AGENT_TESTING_MODEL` as the model. Both are required. `-m` and `--model` are rejected.
-
-## Follow up
-
-```sh
-test-with-agents --session ses_... "next instruction"
-```
-
-## Workdir
-
-Default: `~/.local/state/test-with-agents/workdir`. Override with `--workdir <path>` or `TESTING_WORKDIR`.
-
-The default is outside the repo. Use absolute paths for code, or pass a checkout path if the agent must run project commands.
-
-## Read and clean up
-
-Read the log with the Read tool. Delete the session when done:
-
-```sh
-cd ~/.local/state/test-with-agents/workdir && opencode session delete ses_...
-```
-
-## Rules
-
-- One agent at a time unless the task needs parallel runs.
-- Local and dev only. `--auto` approves every tool call the nested agent makes.
-- Give it a narrow prompt: what to open, what to click, what to report.
-- Do not call `opencode run --auto` directly.
