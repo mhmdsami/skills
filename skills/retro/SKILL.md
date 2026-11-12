@@ -1,10 +1,10 @@
 ---
-name: plan-retro
-description: Review work and user corrections to propose concrete skill improvements. Apply edits only when authorized.
+name: retro
+description: Run a retrospective on work and user corrections to propose concrete skill improvements. Apply edits only when authorized.
 tags: planning, review
 ---
 
-# Review the workflow
+# Retrospective
 
 Read planning-protocol from sibling or installed skills for storage and record conventions. Ask for it if missing.
 
