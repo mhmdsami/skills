@@ -6,6 +6,8 @@ import { ArrowLeft, RotateCcw } from "lucide-react";
 import type { PrivateSkillVersion } from "@/lib/private-skills";
 import { MutationForm, SubmitButton } from "@/components/mutation-form";
 import { ConfirmAction } from "@/components/confirm-action";
+import { DashboardRow } from "@/components/dashboard-row";
+import { SectionHeader } from "@/components/section-header";
 import { restorePrivateSkillAction, savePrivateSkillAction, unarchivePrivateSkillAction } from "@/app/admin/actions";
 
 export function SkillEditor({ slug, initialContent, versions, archived = false }: { slug: string; initialContent: string; versions: PrivateSkillVersion[]; archived?: boolean }) {
@@ -48,12 +50,17 @@ export function SkillEditor({ slug, initialContent, versions, archived = false }
       </>}
     </MutationForm>
     {!isNew && versions.length > 0 && <section>
-      <h2 className="text-sm font-medium">History</h2><p className="mt-1 text-[12px] text-muted">Every save is kept. Restoring one writes a new version.</p>
-      <ul className="mt-4 border-t border-border">{versions.map((version) => <li key={version.id} className="dashboard-row flex flex-wrap items-center gap-4 border-b px-3 border-border py-3">
+      <SectionHeader
+        as="h2"
+        title="History"
+        headingClassName="text-sm"
+        description="Every save is kept. Restoring one writes a new version."
+      />
+      <ul className="mt-4 border-t border-border">{versions.map((version) => <DashboardRow key={version.id}>
         <time className="flex-1 text-[12px]" dateTime={new Date(version.createdAt).toISOString()}>{new Date(version.createdAt).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</time>
         <span className="hidden text-[11px] text-muted sm:block">{version.author || "api"}</span>
         <ConfirmAction action={restorePrivateSkillAction} hidden={{ slug, id: version.id }} title="Restore this version?" body={dirty ? "Restoring replaces the current skill and discards your unsaved edits. The saved history is kept." : "Restoring replaces the current skill and keeps the saved history."} trigger="Restore" pendingLabel="Restoring..." />
-      </li>)}</ul>
+      </DashboardRow>)}</ul>
       <p className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-muted"><RotateCcw className="size-3" /> You can restore any saved version.</p>
     </section>}
   </div>;

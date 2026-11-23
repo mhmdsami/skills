@@ -4,6 +4,9 @@ import { listPrivateSkills } from "@/lib/private-skills";
 import { listRecommendations } from "@/lib/recommendations";
 import { archivePrivateSkillAction, deletePrivateSkillAction, unarchivePrivateSkillAction } from "./actions";
 import { ConfirmAction } from "@/components/confirm-action";
+import { DashboardEmpty } from "@/components/dashboard-empty";
+import { DashboardRow } from "@/components/dashboard-row";
+import { SectionHeader } from "@/components/section-header";
 import { RecommendationsPanel } from "./recommendations";
 
 export const dynamic = "force-dynamic";
@@ -18,20 +21,14 @@ export default async function AdminPage() {
   return (
     <div className="space-y-12">
       <section>
-        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <div>
-            <h1 className="text-lg font-medium tracking-tight">Private skills</h1>
-            <p className="mt-1 text-[12px] text-muted">Unlisted skills, available through their private download links.</p>
-          </div>
-          <Link href="/admin/skills/new" className="button-secondary">New skill</Link>
-        </div>
+        <SectionHeader
+          title="Private skills"
+          description="Unlisted skills, available through their private download links."
+          action={<Link href="/admin/skills/new" className="button-secondary">New skill</Link>}
+        />
         <ul className="mt-5 border-t border-border">
           {skills.length ? skills.map((skill) => (
-            <li key={skill.slug} className="dashboard-row flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-3 border-border py-3">
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[13px] text-foreground">{skill.name}</div>
-                <div className="mt-0.5 truncate text-[11px] text-muted">{skill.description || "No description"}</div>
-              </div>
+            <DashboardRow key={skill.slug} title={skill.name} description={skill.description || "No description"}>
               <Link href={`/admin/skills/${skill.slug}`} className="row-action">Edit</Link>
               <ConfirmAction
                 action={archivePrivateSkillAction}
@@ -42,31 +39,26 @@ export default async function AdminPage() {
                 pendingLabel="Archiving..."
                 destructive={false}
               />
-            </li>
+            </DashboardRow>
           )) : (
-            <li className="border-b border-border">
-              <div className="flex flex-col items-center py-12 text-center">
-                <p className="text-[13px] text-foreground">No private skills yet.</p>
-                <p className="mt-1 text-[11px] leading-5 text-muted">Create one to share it through an unlisted link.</p>
-                <Link href="/admin/skills/new" className="button-secondary mt-4 text-[11px]">New skill</Link>
-              </div>
-            </li>
+            <DashboardEmpty
+              title="No private skills yet."
+              description="Create one to share it through an unlisted link."
+              action={<Link href="/admin/skills/new" className="button-secondary mt-4 text-[11px]">New skill</Link>}
+            />
           )}
         </ul>
       </section>
 
       {archivedSkills.length > 0 && <section>
-        <div>
-          <h2 className="text-lg font-medium tracking-tight">Archived</h2>
-          <p className="mt-1 text-[12px] text-muted">Links stay off. Restore a skill to publish it again, or delete it permanently.</p>
-        </div>
+        <SectionHeader
+          as="h2"
+          title="Archived"
+          description="Links stay off. Restore a skill to publish it again, or delete it permanently."
+        />
         <ul className="mt-5 border-t border-border">
           {archivedSkills.map((skill) => (
-            <li key={skill.slug} className="dashboard-row flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-3 border-border py-3">
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[13px] text-foreground">{skill.name}</div>
-                <div className="mt-0.5 truncate text-[11px] text-muted">{skill.description || "No description"}</div>
-              </div>
+            <DashboardRow key={skill.slug} title={skill.name} description={skill.description || "No description"}>
               <Link href={`/admin/skills/${skill.slug}`} className="row-action">Edit</Link>
               <ConfirmAction
                 action={unarchivePrivateSkillAction}
@@ -85,7 +77,7 @@ export default async function AdminPage() {
                 trigger="Delete permanently"
                 pendingLabel="Deleting..."
               />
-            </li>
+            </DashboardRow>
           ))}
         </ul>
       </section>}

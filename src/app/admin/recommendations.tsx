@@ -3,6 +3,9 @@
 import { useState } from "react";
 import type { Recommendation } from "@/lib/types";
 import { ConfirmAction } from "@/components/confirm-action";
+import { DashboardEmpty } from "@/components/dashboard-empty";
+import { DashboardRow } from "@/components/dashboard-row";
+import { SectionHeader } from "@/components/section-header";
 import { Modal, ModalCancel } from "@/components/modal";
 import { MutationForm, SubmitButton } from "@/components/mutation-form";
 import { deleteRecommendationAction, saveRecommendationAction } from "./actions";
@@ -33,24 +36,23 @@ export function RecommendationsPanel({ recommendations }: { recommendations: Rec
   function edit(item: Recommendation | "new") { setEditing(item); setOpen(true); }
   const item = editing && editing !== "new" ? editing : null;
   return <section>
-    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-      <div><h2 className="text-lg font-medium tracking-tight">Recommendations</h2><p className="mt-1 text-[12px] text-muted">Shown in the catalog&apos;s Recommended section.</p></div>
-      <button type="button" onClick={() => edit("new")} className="button-secondary">New recommendation</button>
-    </div>
+    <SectionHeader
+      as="h2"
+      title="Recommendations"
+      description="Shown in the catalog's Recommended section."
+      action={<button type="button" onClick={() => edit("new")} className="button-secondary">New recommendation</button>}
+    />
     <ul className="mt-5 border-t border-border">
-      {recommendations.length ? recommendations.map((row) => <li key={row.id} className="dashboard-row flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-3 border-border py-3">
-        <div className="min-w-0 flex-1"><div className="truncate text-[13px] text-foreground">{row.name}</div><div className="mt-0.5 truncate text-[12px] text-muted">{row.description || row.source}</div></div>
+      {recommendations.length ? recommendations.map((row) => <DashboardRow key={row.id} title={row.name} description={row.description || row.source} descriptionClassName="mt-0.5 truncate text-[12px] text-muted">
         <code className="hidden shrink-0 text-[11px] text-muted sm:block">{row.source}</code>
         <button type="button" onClick={() => edit(row)} className="row-action">Edit</button>
         <ConfirmAction action={deleteRecommendationAction} hidden={{ id: row.id }} title={`Delete ${row.name}?`} body="Removes it from the catalog's Recommended list." />
-      </li>) : (
-        <li className="border-b border-border">
-          <div className="flex flex-col items-center py-12 text-center">
-            <p className="text-[13px] text-foreground">No recommendations yet.</p>
-            <p className="mt-1 text-[11px] leading-5 text-muted">Add one to share a skill you use.</p>
-            <button type="button" onClick={() => edit("new")} className="button-secondary mt-4 text-[11px]">New recommendation</button>
-          </div>
-        </li>
+      </DashboardRow>) : (
+        <DashboardEmpty
+          title="No recommendations yet."
+          description="Add one to share a skill you use."
+          action={<button type="button" onClick={() => edit("new")} className="button-secondary mt-4 text-[11px]">New recommendation</button>}
+        />
       )}
     </ul>
     <Modal open={open} onOpenChange={setOpen} onClosed={() => setEditing(null)} title={editing === "new" ? "New recommendation" : "Edit recommendation"}>

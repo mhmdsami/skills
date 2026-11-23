@@ -6,6 +6,9 @@ import type { AccessKeyView } from "@/lib/types";
 import { MultiSelect } from "@/components/multi-select";
 import { CopyButton } from "@/components/copy-button";
 import { ConfirmAction } from "@/components/confirm-action";
+import { DashboardEmpty } from "@/components/dashboard-empty";
+import { DashboardRow } from "@/components/dashboard-row";
+import { SectionHeader } from "@/components/section-header";
 import { Modal, ModalCancel } from "@/components/modal";
 import { MutationForm, SubmitButton } from "@/components/mutation-form";
 import { createKeyAction, revokeKeyAction } from "./actions";
@@ -50,26 +53,21 @@ function CreateKeyForm({ slugs }: { slugs: string[] }) {
 
 export function KeysPanel({ keys, slugs }: { keys: AccessKeyView[]; slugs: string[] }) {
   return <section className="space-y-5">
-    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
-      <div><h1 className="text-lg font-medium tracking-tight">Access keys</h1><p className="mt-1 text-[12px] text-muted">Control which private skills a key can download and when it expires.</p></div>
-      <Modal title="New access key" trigger={<button type="button" className="button-secondary">New key</button>}><CreateKeyForm slugs={slugs} /></Modal>
-    </div>
+    <SectionHeader
+      title="Access keys"
+      description="Control which private skills a key can download and when it expires."
+      action={<Modal title="New access key" trigger={<button type="button" className="button-secondary">New key</button>}><CreateKeyForm slugs={slugs} /></Modal>}
+    />
     <ul className="border-t border-border">
-      {keys.length ? keys.map((row) => <li key={row.id} className="dashboard-row flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-3 border-border py-3">
-        <div className="min-w-0 flex-1"><div className="truncate text-[13px] text-foreground">{row.name}</div><div className="mt-1 text-[11px] leading-5 text-muted">
+      {keys.length ? keys.map((row) => <DashboardRow key={row.id} title={row.name} descriptionClassName="mt-1 text-[11px] leading-5 text-muted" description={<>
           {row.slugs.length ? row.slugs.join(", ") : "All skills"}
           {row.expiresAt ? ` · expires ${new Date(row.expiresAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}` : " · no expiry"}
           {row.lastUsedAt ? ` · last used ${new Date(row.lastUsedAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}` : " · never used"}
-        </div></div>
+        </>}>
         <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] ${row.status === "active" ? "border-accent/40 bg-accent/10 text-accent" : row.status === "revoked" ? "border-red-400/40 bg-red-400/10 text-red-300" : "border-border text-muted"}`}>{row.status}</span>
         {row.status === "active" && <ConfirmAction action={revokeKeyAction} hidden={{ id: row.id }} title={`Revoke ${row.name}?`} body="This key will immediately stop granting access to private skills." trigger="Revoke" pendingLabel="Revoking..." />}
-      </li>) : (
-        <li className="border-b border-border">
-          <div className="flex flex-col items-center py-12 text-center">
-            <p className="text-[13px] text-foreground">No keys yet.</p>
-            <p className="mt-1 text-[11px] leading-5 text-muted">Create a key to download private skills.</p>
-          </div>
-        </li>
+      </DashboardRow>) : (
+        <DashboardEmpty title="No keys yet." description="Create a key to download private skills." />
       )}
     </ul>
   </section>;
