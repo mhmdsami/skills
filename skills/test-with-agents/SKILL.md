@@ -7,96 +7,59 @@ tags: testing, browser
 
 # Test with agents
 
-`test-with-agents` wraps the OpenCode CLI so smoke sessions share one workdir and model.
+`test-with-agents` starts and steers an OpenCode testing agent in a shared workdir.
 
-## Run
-
-The script is bundled at `scripts/test-with-agents`. Run it directly:
+## Install
 
 ```sh
-mkdir -p ~/.local/state/test-with-agents/runs
-~/.agents/skills/test-with-agents/scripts/test-with-agents --new --title "smoke-<task>" "prompt" > ~/.local/state/test-with-agents/runs/<task>.log 2>&1 &
+mkdir -p ~/.local/bin
+curl -fsSL https://raw.githubusercontent.com/mhmdsami/skills/main/skills/test-with-agents/scripts/test-with-agents -o ~/.local/bin/test-with-agents
+chmod +x ~/.local/bin/test-with-agents
 ```
 
-`--new` prints the session ID to stderr. Keep it.
+A repo install also has the script at `scripts/test-with-agents`.
 
-The script adds `--auto` and always uses `AGENT_TESTING_PROVIDER/AGENT_TESTING_MODEL` as the model. Both are required. `-m` and `--model` are rejected.
-
-## Follow up
+## Start
 
 ```sh
-~/.agents/skills/test-with-agents/scripts/test-with-agents --session ses_... "next instruction"
+~/.local/bin/test-with-agents start --title "smoke-<task>" --prompt-file prompt.md --json
 ```
+
+Returns `session`, `log`, `workdir`, and `pid`. The prompt can also be passed with `--prompt` or as the last argument.
+
+## Status and wait
+
+```sh
+~/.local/bin/test-with-agents status <session> --json
+~/.local/bin/test-with-agents wait <session> --timeout 900 --json
+```
+
+`status` reports whether the agent is still running and its exit code. `wait` blocks until it finishes and returns the agent’s exit code, or 124 on timeout.
+
+## Send
+
+```sh
+~/.local/bin/test-with-agents send <session> "check the cart page" --json
+```
+
+## Cleanup
+
+```sh
+~/.local/bin/test-with-agents cleanup <session>
+```
+
+Removes the OpenCode session and its run directory. Add `--keep-logs` to keep the logs.
 
 ## Workdir
 
-Default: `~/.local/state/test-with-agents/workdir`. Override with `--workdir <path>` or `TESTING_WORKDIR`.
+Default: `~/.local/state/test-with-agents/workdir`. Override with `--workdir <path>` on `start` or `TESTING_WORKDIR`.
 
-The default is outside the repo. Use absolute paths for code, or pass a checkout path if the agent must run project commands.
-
-## Read and clean up
-
-Read the log with the Read tool. Delete the session when done:
-
-```sh
-cd ~/.local/state/test-with-agents/workdir && opencode session delete ses_...
-```
+The default is outside the repo. Use absolute paths for code, or pass a checkout path when the agent must run project commands.
 
 ## Rules
 
+- Set `AGENT_TESTING_PROVIDER` and `AGENT_TESTING_MODEL`. The script rejects per-run model overrides.
 - One agent at a time unless the task needs parallel runs.
 - Local and dev only. `--auto` approves every tool call the nested agent makes.
 - Give it a narrow prompt: what to open, what to click, what to report.
 - Do not call `opencode run --auto` directly.
-
-## Standalone install
-
-If your installer only copies `SKILL.md`, save this as `~/.local/bin/test-with-agents` and make it executable:
-
-```sh
-#!/usr/bin/env bash
-set -euo pipefail
-
-workdir="${TESTING_WORKDIR:-$HOME/.local/state/test-with-agents/workdir}"
-new_session=0
-
-while [ $# -gt 0 ]; do
-  case "$1" in
-    --workdir) workdir="${2:?--workdir needs a path}"; shift 2 ;;
-    --new) new_session=1; shift ;;
-    *) break ;;
-  esac
-done
-
-provider="${AGENT_TESTING_PROVIDER:-}"
-model="${AGENT_TESTING_MODEL:-}"
-if [ -z "$provider" ] || [ -z "$model" ]; then
-  echo "AGENT_TESTING_PROVIDER and AGENT_TESTING_MODEL must be set" >&2
-  exit 2
-fi
-
-for arg in "$@"; do
-  case "$arg" in
-    -m|--model|--model=*)
-      echo "model is fixed by AGENT_TESTING_PROVIDER/AGENT_TESTING_MODEL" >&2
-      exit 2
-      ;;
-  esac
-done
-
-opencode_bin="${OPENCODE_BIN:-$(command -v opencode || true)}"
-if [ -z "$opencode_bin" ]; then
-  opencode_bin="$HOME/.opencode/bin/opencode"
-fi
-
-mkdir -p "$workdir"
-cd "$workdir"
-
-if [ "$new_session" = 1 ]; then
-  session_id="ses_$(node -e 'process.stdout.write(crypto.randomUUID().replace(/-/g, ""))' 2>/dev/null || openssl rand -hex 16)"
-  printf 'session: %s\n' "$session_id" >&2
-  set -- --session "$session_id" "$@"
-fi
-
-exec "$opencode_bin" run --auto --model "$provider/$model" "$@"
-```

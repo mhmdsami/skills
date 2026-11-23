@@ -1,45 +1,348 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-workdir="${TESTING_WORKDIR:-$HOME/.local/state/test-with-agents/workdir}"
-new_session=0
+state_root="${TESTING_STATE_DIR:-$HOME/.local/state/test-with-agents}"
+runs_dir="$state_root/runs"
+default_workdir="${TESTING_WORKDIR:-$state_root/workdir}"
 
-while [ $# -gt 0 ]; do
-  case "$1" in
-    --workdir) workdir="${2:?--workdir needs a path}"; shift 2 ;;
-    --new) new_session=1; shift ;;
-    *) break ;;
+usage() {
+  cat <<'EOF'
+Usage: test-with-agents <command> [options]
+
+Commands:
+  start --title <title> (--prompt-file <path> | --prompt <text> | <prompt>) [--workdir <path>] [--json]
+  status <session|latest> [--json]
+  wait <session|latest> [--timeout <seconds>] [--json]
+  send <session|latest> <message> [--json]
+  cleanup <session|latest> [--keep-logs] [--json]
+
+Model:
+  Set AGENT_TESTING_PROVIDER and AGENT_TESTING_MODEL. The script always uses
+  those values and does not accept a per-run model override.
+
+State:
+  Runs live under $TESTING_STATE_DIR (default ~/.local/state/test-with-agents).
+  Each session has its own run directory with prompt, log, exit code, and metadata.
+EOF
+}
+
+die() {
+  printf '%s\n' "$1" >&2
+  exit "${2:-1}"
+}
+
+json_escape() {
+  printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
+}
+
+resolve_opencode() {
+  if [ -n "${OPENCODE_BIN:-}" ]; then
+    printf '%s\n' "$OPENCODE_BIN"
+    return
+  fi
+  if command -v opencode >/dev/null 2>&1; then
+    command -v opencode
+    return
+  fi
+  if [ -x "$HOME/.opencode/bin/opencode" ]; then
+    printf '%s\n' "$HOME/.opencode/bin/opencode"
+    return
+  fi
+  die "opencode not found. Set OPENCODE_BIN."
+}
+
+require_model() {
+  [ -n "${AGENT_TESTING_PROVIDER:-}" ] || die "AGENT_TESTING_PROVIDER must be set"
+  [ -n "${AGENT_TESTING_MODEL:-}" ] || die "AGENT_TESTING_MODEL must be set"
+}
+
+new_session() {
+  if command -v node >/dev/null 2>&1; then
+    printf 'ses_%s\n' "$(node -e 'process.stdout.write(crypto.randomUUID().replace(/-/g, ""))')"
+  else
+    printf 'ses_%s\n' "$(openssl rand -hex 16)"
+  fi
+}
+
+run_dir_for() {
+  local requested="$1"
+  if [ "$requested" = "latest" ]; then
+    ls -td "$runs_dir"/* 2>/dev/null | head -1
+  else
+    printf '%s\n' "$runs_dir/$requested"
+  fi
+}
+
+require_run_dir() {
+  local requested="$1"
+  local dir
+  dir="$(run_dir_for "$requested")"
+  [ -n "$dir" ] && [ -d "$dir" ] || die "unknown session: $requested"
+  printf '%s\n' "$dir"
+}
+
+cmd_start() {
+  local title="" prompt_file="" prompt="" workdir="$default_workdir" json=0
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --title) title="${2:?--title needs a value}"; shift 2 ;;
+      --prompt-file) prompt_file="${2:?--prompt-file needs a path}"; shift 2 ;;
+      --prompt) prompt="${2:?--prompt needs text}"; shift 2 ;;
+      --workdir) workdir="${2:?--workdir needs a path}"; shift 2 ;;
+      --json) json=1; shift ;;
+      -h|--help) usage; exit 0 ;;
+      -*) die "unknown start option: $1" ;;
+      *) prompt="$1"; shift ;;
+    esac
+  done
+
+  if [ -n "$prompt_file" ]; then
+    if [ "$prompt_file" = "-" ]; then
+      prompt="$(cat)"
+    else
+      [ -f "$prompt_file" ] || die "prompt file not found: $prompt_file"
+      prompt="$(cat "$prompt_file")"
+    fi
+  fi
+  [ -n "$prompt" ] || die "start needs --prompt-file, --prompt, or a prompt"
+
+  require_model
+  local opencode
+  opencode="$(resolve_opencode)"
+  [ -n "$title" ] || title="smoke-$(date +%Y%m%d-%H%M%S)"
+
+  local session dir pid
+  session="$(new_session)"
+  dir="$runs_dir/$session"
+  mkdir -p "$dir" "$workdir"
+
+  printf '%s\n' "$prompt" > "$dir/prompt.md"
+  printf '%s\n' "$title" > "$dir/title"
+  printf '%s\n' "$workdir" > "$dir/workdir"
+  printf '%s\n' "$AGENT_TESTING_PROVIDER" > "$dir/provider"
+  printf '%s\n' "$AGENT_TESTING_MODEL" > "$dir/model"
+  printf '%s\n' "$session" > "$dir/session"
+  date -u +%Y-%m-%dT%H:%M:%SZ > "$dir/started"
+
+  (
+    set +e
+    cd "$workdir" || { echo 1 > "$dir/exit"; exit 1; }
+    "$opencode" run --auto --model "$AGENT_TESTING_PROVIDER/$AGENT_TESTING_MODEL" \
+      --session "$session" --title "$title" "$prompt" > "$dir/run.log" 2>&1
+    code=$?
+    printf '%s\n' "$code" > "$dir/exit"
+    exit "$code"
+  ) &
+  pid=$!
+  printf '%s\n' "$pid" > "$dir/pid"
+
+  if [ "$json" = 1 ]; then
+    printf '{"session":"%s","title":"%s","workdir":"%s","log":"%s","runDir":"%s","pid":%s}\n' \
+      "$session" "$(json_escape "$title")" "$(json_escape "$workdir")" \
+      "$(json_escape "$dir/run.log")" "$(json_escape "$dir")" "$pid"
+  else
+    printf 'session: %s\n' "$session"
+    printf 'title: %s\n' "$title"
+    printf 'workdir: %s\n' "$workdir"
+    printf 'log: %s\n' "$dir/run.log"
+    printf 'pid: %s\n' "$pid"
+  fi
+}
+
+cmd_status() {
+  local requested="" json=0
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --json) json=1; shift ;;
+      -h|--help) usage; exit 0 ;;
+      -*) die "unknown status option: $1" ;;
+      *) requested="$1"; shift ;;
+    esac
+  done
+  [ -n "$requested" ] || die "status needs a session or latest"
+
+  local dir session title workdir running=false exit_code=null
+  dir="$(require_run_dir "$requested")"
+  session="$(cat "$dir/session")"
+  title="$(cat "$dir/title")"
+  workdir="$(cat "$dir/workdir")"
+  if [ -f "$dir/exit" ]; then
+    exit_code="$(cat "$dir/exit")"
+  else
+    running=true
+  fi
+
+  if [ "$json" = 1 ]; then
+    printf '{"session":"%s","title":"%s","workdir":"%s","log":"%s","running":%s,"exitCode":%s}\n' \
+      "$session" "$(json_escape "$title")" "$(json_escape "$workdir")" \
+      "$(json_escape "$dir/run.log")" "$running" "$exit_code"
+  else
+    printf 'session: %s\n' "$session"
+    printf 'title: %s\n' "$title"
+    printf 'workdir: %s\n' "$workdir"
+    printf 'running: %s\n' "$running"
+    printf 'exit: %s\n' "$exit_code"
+    printf 'log: %s\n' "$dir/run.log"
+    printf -- '---\n'
+    tail -n 20 "$dir/run.log" 2>/dev/null || true
+  fi
+}
+
+cmd_wait() {
+  local requested="" timeout=900 json=0
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --timeout) timeout="${2:?--timeout needs seconds}"; shift 2 ;;
+      --json) json=1; shift ;;
+      -h|--help) usage; exit 0 ;;
+      -*) die "unknown wait option: $1" ;;
+      *) requested="$1"; shift ;;
+    esac
+  done
+  [ -n "$requested" ] || die "wait needs a session or latest"
+
+  local dir session deadline=0 timedout=false code
+  dir="$(require_run_dir "$requested")"
+  session="$(cat "$dir/session")"
+  [ "$timeout" -gt 0 ] && deadline=$(( $(date +%s) + timeout ))
+
+  while :; do
+    if [ -f "$dir/exit" ]; then
+      code="$(cat "$dir/exit")"
+      break
+    fi
+    if [ "$timeout" -gt 0 ] && [ "$(date +%s)" -ge "$deadline" ]; then
+      timedout=true
+      code=124
+      break
+    fi
+    if [ -f "$dir/pid" ] && ! kill -0 "$(cat "$dir/pid")" 2>/dev/null; then
+      sleep 1
+      if [ -f "$dir/exit" ]; then
+        code="$(cat "$dir/exit")"
+      else
+        code=1
+      fi
+      break
+    fi
+    sleep 1
+  done
+
+  if [ "$json" = 1 ]; then
+    printf '{"session":"%s","exitCode":%s,"timedOut":%s}\n' "$session" "$code" "$timedout"
+  elif [ "$timedout" = true ]; then
+    printf 'timeout after %ss for %s\n' "$timeout" "$session"
+  else
+    printf 'completed %s with exit %s\n' "$session" "$code"
+  fi
+
+  exit "$code"
+}
+
+cmd_send() {
+  local requested="" message="" json=0
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --json) json=1; shift ;;
+      -h|--help) usage; exit 0 ;;
+      -*) die "unknown send option: $1" ;;
+      *)
+        if [ -z "$requested" ]; then
+          requested="$1"
+        elif [ -z "$message" ]; then
+          message="$1"
+        else
+          die "send takes one message"
+        fi
+        shift
+        ;;
+    esac
+  done
+  [ -n "$requested" ] || die "send needs a session"
+  [ -n "$message" ] || die "send needs a message"
+  if [ "$message" = "-" ]; then
+    message="$(cat)"
+  fi
+
+  require_model
+  local opencode dir session workdir code
+  opencode="$(resolve_opencode)"
+  dir="$(require_run_dir "$requested")"
+  session="$(cat "$dir/session")"
+  workdir="$(cat "$dir/workdir")"
+  [ -f "$dir/exit" ] || die "session is still running: $session"
+  rm -f "$dir/exit"
+
+  set +e
+  (
+    cd "$workdir" || exit 1
+    "$opencode" run --auto --model "$AGENT_TESTING_PROVIDER/$AGENT_TESTING_MODEL" \
+      --session "$session" "$message" >> "$dir/run.log" 2>&1
+  )
+  code=$?
+  set -e
+  printf '%s\n' "$code" > "$dir/exit"
+
+  if [ "$json" = 1 ]; then
+    printf '{"session":"%s","exitCode":%s,"log":"%s"}\n' "$session" "$code" "$(json_escape "$dir/run.log")"
+  else
+    printf 'session: %s\n' "$session"
+    printf 'exit: %s\n' "$code"
+    printf 'log: %s\n' "$dir/run.log"
+    tail -n 10 "$dir/run.log" 2>/dev/null || true
+  fi
+  exit "$code"
+}
+
+cmd_cleanup() {
+  local requested="" json=0 keep_logs=false
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --keep-logs) keep_logs=true; shift ;;
+      --json) json=1; shift ;;
+      -h|--help) usage; exit 0 ;;
+      -*) die "unknown cleanup option: $1" ;;
+      *) requested="$1"; shift ;;
+    esac
+  done
+  [ -n "$requested" ] || die "cleanup needs a session or latest"
+
+  local dir session opencode
+  dir="$(require_run_dir "$requested")"
+  session="$(cat "$dir/session")"
+
+  if [ ! -f "$dir/exit" ] && [ -f "$dir/pid" ] && kill -0 "$(cat "$dir/pid")" 2>/dev/null; then
+    die "session is still running: $session"
+  fi
+
+  opencode="$(resolve_opencode)"
+  "$opencode" session delete "$session" >/dev/null 2>&1 || true
+  [ "$keep_logs" = true ] || rm -rf "$dir"
+
+  if [ "$json" = 1 ]; then
+    printf '{"session":"%s","removed":true,"logsKept":%s}\n' "$session" "$keep_logs"
+  else
+    printf 'removed %s\n' "$session"
+  fi
+}
+
+main() {
+  local command="${1:-}"
+  [ $# -gt 0 ] && shift
+  case "$command" in
+    start) cmd_start "$@" ;;
+    status) cmd_status "$@" ;;
+    wait) cmd_wait "$@" ;;
+    send) cmd_send "$@" ;;
+    cleanup) cmd_cleanup "$@" ;;
+    help|-h|--help|"") usage ;;
+    *) die "unknown command: $command" ;;
   esac
-done
+}
 
-provider="${AGENT_TESTING_PROVIDER:-}"
-model="${AGENT_TESTING_MODEL:-}"
-if [ -z "$provider" ] || [ -z "$model" ]; then
-  echo "AGENT_TESTING_PROVIDER and AGENT_TESTING_MODEL must be set" >&2
-  exit 2
-fi
-
-for arg in "$@"; do
-  case "$arg" in
-    -m|--model|--model=*)
-      echo "model is fixed by AGENT_TESTING_PROVIDER/AGENT_TESTING_MODEL" >&2
-      exit 2
-      ;;
-  esac
-done
-
-opencode_bin="${OPENCODE_BIN:-$(command -v opencode || true)}"
-if [ -z "$opencode_bin" ]; then
-  opencode_bin="$HOME/.opencode/bin/opencode"
-fi
-
-mkdir -p "$workdir"
-cd "$workdir"
-
-if [ "$new_session" = 1 ]; then
-  session_id="ses_$(node -e 'process.stdout.write(crypto.randomUUID().replace(/-/g, ""))' 2>/dev/null || openssl rand -hex 16)"
-  printf 'session: %s\n' "$session_id" >&2
-  set -- --session "$session_id" "$@"
-fi
-
-exec "$opencode_bin" run --auto --model "$provider/$model" "$@"
+main "$@"
